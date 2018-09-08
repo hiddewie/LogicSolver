@@ -1,5 +1,9 @@
 package nl.hiddewieringa
 
+interface LogicPuzzleSolver<IN, OUT> {
+    fun solve(input: IN): OneOf<OUT, List<LogicSolveError>>
+}
+
 /**
  * Solving data structure for sudokus.
  *
@@ -18,45 +22,56 @@ class SudokuSolveData(val coordinate: Coordinate, val value: Int?, val notAllowe
 /**
  * Solves sudoku input of different forms
  */
-class SudokuSolver(input: SudokuInput) {
+class SudokuSolver : LogicPuzzleSolver<SudokuInput, SudokuOutput> {
 
-    val groups: Set<Group<Map<Coordinate, SudokuSolveData>, SudokuSolveData>>
-    val data: MutableMap<Coordinate, SudokuSolveData> = mutableMapOf()
+    val groupStrategy = GroupStrategy()
 
-    init {
-        // Migrate groups to Group objects
-        groups = input.groups.map { coordinates: List<Coordinate> ->
+    /**
+     * Migrates input groups to Group objects
+     */
+    private fun toGroups(groups: List<List<Coordinate>>): Set<Group<Map<Coordinate, SudokuSolveData>, SudokuSolveData>> {
+        return groups.map { coordinates: List<Coordinate> ->
             { v: Map<Coordinate, SudokuSolveData> ->
-                coordinates.map { v.get(it) }.filterNotNull()
+                coordinates.map { v[it] }.filterNotNull()
             }
         }.toSet()
+    }
 
-        // Build solving data from input
+    /**
+     * Builds solving data from input
+     */
+    private fun buildSolvingData(input: Map<Coordinate, Int>): MutableMap<Coordinate, SudokuSolveData> {
+        val data: MutableMap<Coordinate, SudokuSolveData> = mutableMapOf()
+
         (1..9).forEach { i ->
             (1..9).forEach { j ->
                 val coordinate = Coordinate(i, j)
-                data[coordinate] = if (input.values.containsKey(coordinate)) {
-                    SudokuSolveData(coordinate, input.values[coordinate]!!, listOf())
+                data[coordinate] = if (input.containsKey(coordinate)) {
+                    SudokuSolveData(coordinate, input[coordinate]!!, listOf())
                 } else {
                     SudokuSolveData(coordinate, null, listOf())
                 }
             }
         }
+
+        return data
     }
 
     /**
      * Gathers conclusions from each group
      */
-    fun gatherConclusions(): Set<Conclusion> {
+    private fun gatherConclusions(groups: Set<Group<Map<Coordinate, SudokuSolveData>, SudokuSolveData>>,
+                          data: MutableMap<Coordinate, SudokuSolveData>): Set<Conclusion> {
+
         return groups.flatMap {
-            GroupStrategy(it(data)).gatherConclusions()
+            groupStrategy.gatherConclusions(it(data))
         }.toSet()
     }
 
     /**
      * Processes the conclusions from each group
      */
-    fun processConclusion(conclusion: Conclusion) {
+    private fun processConclusion(data: MutableMap<Coordinate, SudokuSolveData>, conclusion: Conclusion) {
         if (conclusion.isLeft()) {
             val value = conclusion.left()
             if (data[value.coordinate]!!.value != null) {
@@ -73,30 +88,41 @@ class SudokuSolver(input: SudokuInput) {
      * Solves the input by finding conclusions until no more conclusions can be found.
      * Then, either the puzzle has been solved or an error is returned.
      */
-    fun solve(): OneOf<SudokuOutput, List<LogicSolveError>> {
-        if (isSolved()) {
-            return toOutput()
+    override fun solve(input: SudokuInput): OneOf<SudokuOutput, List<LogicSolveError>> {
+        val groups: Set<Group<Map<Coordinate, SudokuSolveData>, SudokuSolveData>> = toGroups(input.groups)
+        val data = buildSolvingData(input.values)
+
+        if (isSolved(data)) {
+            return toOutput(data)
         }
 
         do {
-            val conclusions = gatherConclusions()
-            conclusions.forEach(::processConclusion)
+            val conclusions = gatherConclusions(groups, data)
+            conclusions.forEach {
+                processConclusion(data, it)
+            }
         } while (!conclusions.isEmpty())
 
-        return if (isSolved()) {
-            toOutput()
+        return if (isSolved(data)) {
+            toOutput(data)
         } else {
             OneOf.right(listOf(LogicSolveError("No more conclusions, cannot solve")))
         }
     }
 
-    fun isSolved(): Boolean {
+    /**
+     * Checks if the puzzle has been solved
+     */
+    private fun isSolved(data: MutableMap<Coordinate, SudokuSolveData>): Boolean {
         return !data.values.any {
             it.value == null
         }
     }
 
-    fun toOutput(): OneOf<SudokuOutput, List<LogicSolveError>> {
+    /**
+     * Generates the output given solving data
+     */
+    private fun toOutput(data: MutableMap<Coordinate, SudokuSolveData>): OneOf<SudokuOutput, List<LogicSolveError>> {
         val valueMap = data.mapValues {
             it.value.value!!
         }

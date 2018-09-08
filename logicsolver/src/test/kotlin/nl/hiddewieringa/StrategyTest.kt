@@ -15,7 +15,7 @@ class StrategyTest {
         val expected = setOf(
                 OneOf.left<Value, NotAllowed>(Value(Coordinate(1, 9), 9))
         )
-        assertEquals(expected, GroupStrategy(data).missingValue(data))
+        assertEquals(expected, GroupStrategy().missingValue(data))
     }
 
     @Test
@@ -28,7 +28,7 @@ class StrategyTest {
         val expected = (2..9).map {
             OneOf.right<Value, NotAllowed>(NotAllowed(Coordinate(1, it), 1))
         }.toSet()
-        assertEquals(expected, GroupStrategy(data).missingNotAllowed(data))
+        assertEquals(expected, GroupStrategy().filledValueNotAllowedInGroup(data))
     }
 
     @Test
@@ -39,7 +39,7 @@ class StrategyTest {
         val expected = setOf(
                 OneOf.left<Value, NotAllowed>(Value(Coordinate(1, 1), 9))
         )
-        assertEquals(expected, GroupStrategy(data).singleValueAllowed(data))
+        assertEquals(expected, GroupStrategy().singleValueAllowed(data))
     }
 
     @Test
@@ -50,6 +50,6 @@ class StrategyTest {
         val expected = (2..9).map {
             OneOf.right<Value, NotAllowed>(NotAllowed(Coordinate(1, 1), it))
         }.toSet()
-        assertEquals(expected, GroupStrategy(data).filledValueNotAllowedRest(data))
+        assertEquals(expected, GroupStrategy().filledValueRestNotAllowed(data))
     }
 }

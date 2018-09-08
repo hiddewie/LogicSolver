@@ -14,8 +14,8 @@ class SudokuIntegrationTest {
         }.toMap()
 
         val input = Sudoku(valueMap)
-        val solver = SudokuSolver(input)
-        val output = solver.solve()
+        val solver = SudokuSolver()
+        val output = solver.solve(input)
 
         val expected = SudokuOutput(valueMap)
         assertEquals(true, output.isLeft())
@@ -36,23 +36,23 @@ class SudokuIntegrationTest {
  . 4 6 3 . 2 7 . 5
 """)
 
-        val solver = SudokuSolver(input)
-        val output = solver.solve()
+        val solver = SudokuSolver()
+        val output = solver.solve(input)
 
-        val expected = SudokuOutput(Sudoku.readFromString("""
- 3 6 1 2 4 5 8 7 9
- 9 5 4 1 8 7 3 2 6
- 7 8 2 9 6 3 1 5 4
- 6 7 3 4 5 8 9 1 2
- 8 1 5 6 2 9 4 3 7
- 4 2 9 7 3 1 5 6 8
- 2 3 8 5 7 4 6 9 1
- 5 9 7 8 1 6 2 4 3
- 1 4 6 3 9 2 7 8 5
-""").values)
+        val expected = """
+3 6 1 2 4 5 8 7 9
+9 5 4 1 8 7 3 2 6
+7 8 2 9 6 3 1 5 4
+6 7 3 4 5 8 9 1 2
+8 1 5 6 2 9 4 3 7
+4 2 9 7 3 1 5 6 8
+2 3 8 5 7 4 6 9 1
+5 9 7 8 1 6 2 4 3
+1 4 6 3 9 2 7 8 5
+"""
 
         assertEquals(true, output.isLeft())
-        assertEquals(expected, output.left())
+        assertEquals(expected.trim(), output.left().toString().trim())
     }
 
     @Test
@@ -62,8 +62,8 @@ class SudokuIntegrationTest {
         )
 
         val input = Sudoku(valueMap)
-        val solver = SudokuSolver(input)
-        val output = solver.solve()
+        val solver = SudokuSolver()
+        val output = solver.solve(input)
 
         val expected = listOf(
                 LogicSolveError("No more conclusions, cannot solve")

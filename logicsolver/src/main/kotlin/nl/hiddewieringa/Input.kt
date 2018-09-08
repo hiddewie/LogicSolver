@@ -2,16 +2,9 @@ package nl.hiddewieringa
 
 import java.util.regex.Pattern
 
-
-// Input
-
 data class LogicSolveError(override val message: String) : Exception(message)
 
-interface LogicPuzzleInput<I, O> {
-}
-
 data class Coordinate(val a: Int, val b: Int)
-
 
 fun row(i: Int): List<Coordinate> {
     return (1..9).map {
@@ -43,7 +36,7 @@ class Sudoku(values: Map<Coordinate, Int>) : SudokuInput(values, (1..9).flatMap 
 
             val valueMap = (1..9).flatMap { i ->
                 (1..9).flatMap { j ->
-                    val c = split.get(9 * (i - 1) + (j - 1))
+                    val c = split[9 * (i - 1) + (j - 1)]
                     if (c.length == 1 && c.toIntOrNull() != null && c.toInt() >= 1 && c.toInt() <= 9) {
                         listOf(Coordinate(i, j) to c.toInt())
                     } else {
@@ -51,7 +44,6 @@ class Sudoku(values: Map<Coordinate, Int>) : SudokuInput(values, (1..9).flatMap 
                     }
                 }
             }.toMap()
-            println(valueMap)
 
             return Sudoku(valueMap)
         }
@@ -59,4 +51,4 @@ class Sudoku(values: Map<Coordinate, Int>) : SudokuInput(values, (1..9).flatMap 
     }
 }
 
-open class SudokuInput(val values: Map<Coordinate, Int>, val groups: List<List<Coordinate>>) : LogicPuzzleInput<SudokuInput, SudokuOutput>
+open class SudokuInput(val values: Map<Coordinate, Int>, val groups: List<List<Coordinate>>)
