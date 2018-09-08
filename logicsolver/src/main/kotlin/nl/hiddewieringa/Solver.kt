@@ -136,7 +136,10 @@ class SudokuSolver(input: SudokuInput) {
         } while(!conclusions.isEmpty())
 
         return if (isSolved()) {
-            OneOf.left(SudokuOutput(mapOf()))
+            val valueMap = data.mapValues {
+                it.value.value!!
+            }
+            OneOf.left(SudokuOutput(valueMap))
         } else {
             return OneOf.right(listOf(LogicSolveError("No more conclusions, cannot solve")))
 
