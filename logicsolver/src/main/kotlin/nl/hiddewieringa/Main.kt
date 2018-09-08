@@ -1,4 +1,5 @@
-import com.sun.org.apache.xpath.internal.operations.Bool
+package main.kotlin
+
 import java.util.function.Function
 import java.util.stream.IntStream.range
 
@@ -202,7 +203,7 @@ class SudokuSolver(input: SudokuInput) {
 
         (1..9).forEach {i ->
             range(1, 9).forEach { j->
-                val coordinate = Coordinate(i,j)
+                val coordinate = Coordinate(i, j)
                 data[coordinate] = if (input.values.containsKey(coordinate)) {
                     SudokuSolveData(coordinate, input.values[coordinate]!!, listOf())
                 } else {
