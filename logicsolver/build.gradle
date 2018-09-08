@@ -31,7 +31,7 @@ archivesBaseName = 'LogicSolver'
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 
-//    compile "org.jetbrains.kotlin:kotlin-reflect"
+    compile "org.jetbrains.kotlin:kotlin-reflect"
     testCompile "org.jetbrains.kotlin:kotlin-test"
     testCompile "org.jetbrains.kotlin:kotlin-test-junit"
 }

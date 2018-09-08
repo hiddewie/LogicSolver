@@ -39,7 +39,7 @@ class GroupStrategy(val data: List<SudokuSolveData>) {
             i to data.find { it.value == i }
         }.toMap()
 
-        return if ((1..9).map { m.get(it) }.contains(null)) {
+        return if ((1..9).filter { m.get(it) == null }.size == 1) {
             val coordinate = data.find { it.value == null }!!.coordinate
             val value = (1..9).find { m.get(it) == null }!!
             listOf(OneOf.left(Value(coordinate, value)))
@@ -89,10 +89,11 @@ class GroupStrategy(val data: List<SudokuSolveData>) {
     }
 
     fun gatherConclusions() :List<Conclusion> {
-        val conclusions = strategies.flatMap {
-            it(data)
-    }
-        println("Found conclusions of ${conclusions}")
+        val conclusions = strategies.flatMap<Strategy<List<SudokuSolveData>, Conclusion>, Conclusion> {
+            val con = it(data)
+            println("Found conclusions of ${con} for strategy ${it}")
+            return con
+        }
         return conclusions
     }
 }

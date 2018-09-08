@@ -105,6 +105,10 @@ class SudokuSolver(input: SudokuInput) {
     }
 
     fun  solve(): OneOf<SudokuOutput, List<LogicSolveError>> {
+        if (isSolved()) {
+            return toOutput()
+        }
+
         do {
             val conclusions = gatherConclusions()
             if (conclusions.isEmpty()) {
@@ -114,13 +118,9 @@ class SudokuSolver(input: SudokuInput) {
         } while(!conclusions.isEmpty())
 
         return if (isSolved()) {
-            val valueMap = data.mapValues {
-                it.value.value!!
-            }
-            OneOf.left(SudokuOutput(valueMap))
+            toOutput()
         } else {
-            return OneOf.right(listOf(LogicSolveError("No more conclusions, cannot solve")))
-
+            OneOf.right(listOf(LogicSolveError("No more conclusions, cannot solve")))
         }
     }
 
@@ -128,5 +128,12 @@ class SudokuSolver(input: SudokuInput) {
         return !data.values.any {
             it.value == null
         }
+    }
+
+    fun toOutput(): OneOf<SudokuOutput, List<LogicSolveError>> {
+        val valueMap = data.mapValues {
+            it.value.value!!
+        }
+        return OneOf.left(SudokuOutput(valueMap))
     }
 }

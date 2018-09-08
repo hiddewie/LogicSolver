@@ -38,4 +38,21 @@ class SudokuIntegrationTest {
         assertEquals(true, output.isLeft())
         assertEquals(expected, output.left())
     }
+
+    @Test
+    fun failToSolveUnsolveableSudoku() {
+        val valueMap = mapOf(
+                Coordinate(1, 1) to 1
+        )
+
+        val input = Sudoku(valueMap)
+        val solver = SudokuSolver(input)
+        val output = solver.solve()
+
+        val expected = listOf(
+                LogicSolveError("No more conclusions, cannot solve")
+        )
+        assertEquals(true, output.isRight())
+        assertEquals(expected, output.right())
+    }
 }
