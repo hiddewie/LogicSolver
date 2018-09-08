@@ -17,16 +17,16 @@ class OneOf<L, R>(val left: L?, val right: R?) {
         }
     }
 
-    fun <T> mapLeft(transform: Function<L, T>): OneOf<T, R> {
-        return if (left != null) OneOf(transform.apply(left), right) else OneOf(null, right)
+    fun <T> mapLeft(transform: (L) -> T): OneOf<T, R> {
+        return if (left != null) OneOf(transform(left), right) else OneOf(null, right)
     }
 
-    fun <T> mapRight(transform: Function<R, T>): OneOf<L, T> {
-        return if (right != null) OneOf(left, transform.apply(right)) else OneOf(left, null)
+    fun <T> mapRight(transform: (R) -> T): OneOf<L, T> {
+        return if (right != null) OneOf(left, transform(right)) else OneOf(left, null)
     }
 
-    fun <T> match(leftMatch: Function<L, T>, rightMatch: Function<R, T>): T {
-        return if (left != null) leftMatch.apply(left) else rightMatch.apply(right())
+    fun <T> match(leftMatch: (L) -> T, rightMatch: (R) -> T): T {
+        return if (left != null) leftMatch(left) else rightMatch(right())
     }
 
     fun isLeft(): Boolean {
