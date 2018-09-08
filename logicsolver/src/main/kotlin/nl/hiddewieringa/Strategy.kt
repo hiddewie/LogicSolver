@@ -5,7 +5,7 @@ package nl.hiddewieringa
 
 typealias Conclusion = OneOf<Value, NotAllowed>
 
-typealias Strategy<I, C> = (I) -> List<C>
+typealias Strategy<I, C> = (I) -> Set<C>
 
 //interface Strategy<I, C> {
 //    fun conclude(data: I): List<C>
@@ -23,18 +23,18 @@ typealias Group<M, T> = (M) -> List<T>
 // TODO: make immutable
 class GroupStrategy(val data: List<SudokuSolveData>) {
 
-    val strategies: List<Strategy<List<SudokuSolveData>, Conclusion>>
+    val strategies: Set<Strategy<List<SudokuSolveData>, Conclusion>>
 
     init {
-        strategies = listOf(
+        strategies = setOf(
                 ::missingValue,
                 ::missingNotAllowed,
-                ::singleValueAllowed
-                // TODO: filled value not allowed rest
+                ::singleValueAllowed,
+                ::filledValueNotAllowedRest
         )
     }
 
-    fun missingValue(data : List<SudokuSolveData>): List<Conclusion> {
+    fun missingValue(data : List<SudokuSolveData>): Set<Conclusion> {
         val m = (1..9).map { i ->
             i to data.find { it.value == i }
         }.toMap()
@@ -42,58 +42,50 @@ class GroupStrategy(val data: List<SudokuSolveData>) {
         return if ((1..9).filter { m.get(it) == null }.size == 1) {
             val coordinate = data.find { it.value == null }!!.coordinate
             val value = (1..9).find { m.get(it) == null }!!
-            listOf(OneOf.left(Value(coordinate, value)))
+            setOf(OneOf.left(Value(coordinate, value)))
         } else {
-            listOf()
+            setOf()
         }
     }
 
-    fun missingNotAllowed(data : List<SudokuSolveData>): List<Conclusion> {
-        return data.filter {
-            it.value != null
-        }
+    fun missingNotAllowed(data : List<SudokuSolveData>): Set<Conclusion> {
+        return data.filter(SudokuSolveData::hasValue)
         .flatMap { hasValue ->
             data.filter {
                 hasValue.coordinate != it.coordinate && !it.notAllowed.contains(hasValue.value!!)
             }.map {
                 OneOf.right<Value, NotAllowed>(NotAllowed(it.coordinate, hasValue.value!!))
             }
-        }
+        }.toSet()
     }
 
-    fun filedValueNotAllowedRest(data : List<SudokuSolveData>): List<Conclusion> {
-        return data.filter {
-            it.value != null
-        }
-        .flatMap { hasValue ->
-            data.filter {
-                hasValue.coordinate != it.coordinate && !it.notAllowed.contains(hasValue.value!!)
-            }.map {
-                OneOf.right<Value, NotAllowed>(NotAllowed(it.coordinate, hasValue.value!!))
+    fun filledValueNotAllowedRest(data : List<SudokuSolveData>): Set<Conclusion> {
+        return data.filter(SudokuSolveData::hasValue)
+        .flatMap {hasValue ->
+            val missingNotAllowed = (1..9) - listOf(hasValue.value!!) - hasValue.notAllowed
+            missingNotAllowed.map {
+                OneOf.right<Value, NotAllowed>(NotAllowed(hasValue.coordinate, it))
             }
-        }
+        }.toSet()
     }
 
-    fun singleValueAllowed(data : List<SudokuSolveData>): List<Conclusion> {
-        return data.flatMap { solveData ->
+    fun singleValueAllowed(data : List<SudokuSolveData>): Set<Conclusion> {
+        return data.filter(SudokuSolveData::isEmpty).flatMap<SudokuSolveData, Conclusion> { solveData ->
             val m = (1..9).map { i ->
                 i to solveData.notAllowed.contains(i)
             }.toMap()
 
             return if (m.values.filter { !it }.size == 1) {
-                listOf(OneOf.left(Value(solveData.coordinate, m.filterValues { !it }.keys.first())))
+                setOf(OneOf.left(Value(solveData.coordinate, m.filterValues { !it }.keys.first())))
             }  else {
-                listOf()
+                setOf()
             }
-        }
+        }.toSet()
     }
 
-    fun gatherConclusions() :List<Conclusion> {
-        val conclusions = strategies.flatMap<Strategy<List<SudokuSolveData>, Conclusion>, Conclusion> {
-            val con = it(data)
-            println("Found conclusions of ${con} for strategy ${it}")
-            return con
-        }
-        return conclusions
+    fun gatherConclusions() :Set<Conclusion> {
+        return strategies.flatMap {
+            it(data)
+        }.toSet()
     }
 }

@@ -25,7 +25,7 @@ fun column(i: Int): List<Coordinate> {
 
 fun block(i: Int): List<Coordinate> {
     return (1..9).map {
-        Coordinate(1 + (i - 1) / 3 + (it - 1) / 3, 1 + (i - 1) % 3 + (it - 1) % 3)
+        Coordinate(1 + 3 * ((i - 1) / 3) + (it - 1) / 3, 1 + 3 * ((i - 1) % 3) + (it - 1) % 3)
     }
 }
 
