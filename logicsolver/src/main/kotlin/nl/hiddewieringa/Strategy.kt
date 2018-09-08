@@ -3,8 +3,6 @@ package nl.hiddewieringa
 
 // Strategy
 
-//group: SudokuSolver -> [SudokuValue]?
-
 data class Conclusion(val conclusion: OneOf<Value, NotAllowed>)
 
 typealias Strategy<I, C> = (I) -> List<C>
@@ -32,12 +30,9 @@ class GroupStrategy(val data: List<SudokuSolveData>) {
                 ::missingValue,
                 ::missingNotAllowed,
                 ::singleValueAllowed
-
-//            { data: List<SudokuSolveData> ->  allValueExceptOne ? findMissingValue : <> },
-//            { data: List<SudokuSolveData> -> data.unfilled.each { value -> singleNumberAllowed ? valueOfMissingNumber : <> } }
-//            { data: List<SudokuSolveData> -> data.values.each { v -> data.unfilled.allowed(v) -> NotAllowed(v) } }
         )
     }
+
     fun missingValue(data : List<SudokuSolveData>): List<Conclusion> {
         val m = (1..9).map { i ->
             i to data.find { it.value == i }
@@ -50,14 +45,7 @@ class GroupStrategy(val data: List<SudokuSolveData>) {
         } else {
             listOf()
         }
-
-//        return if (data.filter { it.value != null }.toSet().size() == 8) {
-//            listOf(OneOf.left(Value(data.filter {  })))
-//        } else {
-//            listOf()
-//        }
     }
-
 
     fun missingNotAllowed(data : List<SudokuSolveData>): List<Conclusion> {
         return data.filter {
@@ -84,37 +72,11 @@ class GroupStrategy(val data: List<SudokuSolveData>) {
                 listOf()
             }
         }
-//
-//        return data.filter {
-//            it.notAllowed.size() == 8
-//        }
-//                .map {  }
-//                .flatMap {hasValue ->
-//                    data.filter { it: SudokuSolveData ->
-//                        !it.notAllowed.contains(hasValue.value!!)
-//                    }.map {
-//                        Conclusion(OneOf.right(NotAllowed(it.coordinate, hasValue.value!!)))
-//                    }
-//                }
     }
-
-
-//    data : OneOf<Value, NotAllowed>[] = [Value(1), [NotAllowed(1), NotAllowed(2), NotAllowed(3)]]
-
-//    fun ifApplicable(coordinate: Coordinate): Boolean {
-//        group.elements().has(coordinate)
-//    }
 
     fun gatherConclusions() :List<Conclusion> {
         return strategies.flatMap {
             it(data)
         }
     }
-
-//    processConclusion(Conclusion it)
-//    {
-//        ifApplicable it {
-//            process(it)
-//        }
-//    }
 }

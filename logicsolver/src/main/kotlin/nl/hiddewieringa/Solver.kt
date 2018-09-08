@@ -58,25 +58,12 @@ package nl.hiddewieringa
 
 class SudokuSolveData (val coordinate: Coordinate, val value :Int?, val notAllowed: List<Int>)
 
-//fun value(value: Int):SudokuSolveData {
-//    return SudokuSolveData(value, (1..9).filterNot { it == value })
-//}
-
 class SudokuSolver(input: SudokuInput) {
 
-    val groups: List<Group<Map<Coordinate, SudokuSolveData>, SudokuSolveData>> // List<(a:Map<Coordinate, SudokuSolveData> -> List<SudokuSolveData>)>
+    val groups: List<Group<Map<Coordinate, SudokuSolveData>, SudokuSolveData>>
     val data: MutableMap<Coordinate, SudokuSolveData> = mutableMapOf()
 
     init  {
-        // SudokuInput is groups and values
-
-//        input.groups.each {
-//
-//        }
-
-//        groups = listOf()
-
-
         groups = input.groups.map { coordinates: List<Coordinate> ->
             { v: Map<Coordinate, SudokuSolveData>->
                 coordinates.map { v.get(it) }.filterNotNull()
@@ -93,31 +80,26 @@ class SudokuSolver(input: SudokuInput) {
                 }
             }
         }
-//        values = values(k: v) -> k: value(v)
-//        notAllowed = values(k: )
-//        rules = range(1, 9) -> {}
     }
-
-//    fun processConclusion()  {
-////        groups.each {
-////            processConclusion(it)
-////        }
-//    }
 
     fun gatherConclusions(): List<Conclusion>
     {
         return groups.flatMap {
             return GroupStrategy(it(data)).gatherConclusions()
-//            it().gatherConclusion(it)
         }
     }
 
     fun processConclusion(conclusion: Conclusion) {
         if (conclusion.conclusion.isLeft()) {
             val value = conclusion.conclusion.left()
+            if (data[value.coordinate]!!.value != null) {
+                throw Exception("Value at ${data[value.coordinate]!!.coordinate} is ${data[value.coordinate]!!.value} but replacing with ${value.value}")
+            }
+            println("Setting value at ${data[value.coordinate]!!.coordinate} to value ${value.value}")
             data[value.coordinate] = SudokuSolveData(value.coordinate, value.value, data[value.coordinate]!!.notAllowed)
         } else {
             val notAllowed = conclusion.conclusion.right()
+            println("Not allowed ${notAllowed.value} at ${data[notAllowed.coordinate]!!.coordinate}")
             data[notAllowed.coordinate] = SudokuSolveData(notAllowed.coordinate, data[notAllowed.coordinate]!!.value, data[notAllowed.coordinate]!!.notAllowed + listOf(notAllowed.value))
         }
     }
@@ -128,10 +110,6 @@ class SudokuSolver(input: SudokuInput) {
             if (conclusions.isEmpty()) {
             } else {
                 conclusions.forEach(::processConclusion)
-//            processConclusions()
-//            conclusions.forEach {
-//                processConclusion(it)
-//            }
             }
         } while(!conclusions.isEmpty())
 
