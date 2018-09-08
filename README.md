@@ -2,6 +2,7 @@
 
 Solver for logic puzzles, easily extensible for other kind of puzzles
 
+Build status (using Semaphore CI): [![Build Status](https://semaphoreci.com/api/v1/hiddewie/logicsolver/branches/master/badge.svg)](https://semaphoreci.com/hiddewie/logicsolver)
 
 ## Idea
 
