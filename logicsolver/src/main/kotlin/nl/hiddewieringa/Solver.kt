@@ -90,15 +90,15 @@ class SudokuSolver(input: SudokuInput) {
     }
 
     fun processConclusion(conclusion: Conclusion) {
-        if (conclusion.conclusion.isLeft()) {
-            val value = conclusion.conclusion.left()
+        if (conclusion.isLeft()) {
+            val value = conclusion.left()
             if (data[value.coordinate]!!.value != null) {
                 throw Exception("Value at ${data[value.coordinate]!!.coordinate} is ${data[value.coordinate]!!.value} but replacing with ${value.value}")
             }
             println("Setting value at ${data[value.coordinate]!!.coordinate} to value ${value.value}")
             data[value.coordinate] = SudokuSolveData(value.coordinate, value.value, data[value.coordinate]!!.notAllowed)
         } else {
-            val notAllowed = conclusion.conclusion.right()
+            val notAllowed = conclusion.right()
             println("Not allowed ${notAllowed.value} at ${data[notAllowed.coordinate]!!.coordinate}")
             data[notAllowed.coordinate] = SudokuSolveData(notAllowed.coordinate, data[notAllowed.coordinate]!!.value, data[notAllowed.coordinate]!!.notAllowed + listOf(notAllowed.value))
         }

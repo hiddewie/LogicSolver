@@ -44,6 +44,32 @@ class OneOf<L, R>(val left: L?, val right: R?) {
     fun right(): R {
         return right!!
     }
+
+    override fun toString():String {
+        return if (isLeft()) {
+            "<${left()}|>"
+        } else {
+            "<|${right()}>"
+        }
+    }
+
+    override fun hashCode(): Int {
+        var result = left?.hashCode() ?: 0
+        result = 31 * result + (right?.hashCode() ?: 0)
+        return result
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as OneOf<*, *>
+
+        if (left != other.left) return false
+        if (right != other.right) return false
+
+        return true
+    }
 }
 
 

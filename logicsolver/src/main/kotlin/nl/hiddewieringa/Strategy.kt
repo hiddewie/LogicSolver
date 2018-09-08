@@ -3,7 +3,7 @@ package nl.hiddewieringa
 
 // Strategy
 
-data class Conclusion(val conclusion: OneOf<Value, NotAllowed>)
+typealias Conclusion = OneOf<Value, NotAllowed>
 
 typealias Strategy<I, C> = (I) -> List<C>
 
@@ -30,6 +30,7 @@ class GroupStrategy(val data: List<SudokuSolveData>) {
                 ::missingValue,
                 ::missingNotAllowed,
                 ::singleValueAllowed
+                // TODO: filled value not allowed rest
         )
     }
 
@@ -41,7 +42,7 @@ class GroupStrategy(val data: List<SudokuSolveData>) {
         return if ((1..9).map { m.get(it) }.contains(null)) {
             val coordinate = data.find { it.value == null }!!.coordinate
             val value = (1..9).find { m.get(it) == null }!!
-            listOf(Conclusion(OneOf.left(Value(coordinate, value))))
+            listOf(OneOf.left(Value(coordinate, value)))
         } else {
             listOf()
         }
@@ -51,13 +52,26 @@ class GroupStrategy(val data: List<SudokuSolveData>) {
         return data.filter {
             it.value != null
         }
-                .flatMap {hasValue ->
-                    data.filter { it: SudokuSolveData ->
-                        !it.notAllowed.contains(hasValue.value!!)
-                    }.map {
-                        Conclusion(OneOf.right(NotAllowed(it.coordinate, hasValue.value!!)))
-                    }
-                }
+        .flatMap { hasValue ->
+            data.filter {
+                hasValue.coordinate != it.coordinate && !it.notAllowed.contains(hasValue.value!!)
+            }.map {
+                OneOf.right<Value, NotAllowed>(NotAllowed(it.coordinate, hasValue.value!!))
+            }
+        }
+    }
+
+    fun filedValueNotAllowedRest(data : List<SudokuSolveData>): List<Conclusion> {
+        return data.filter {
+            it.value != null
+        }
+        .flatMap { hasValue ->
+            data.filter {
+                hasValue.coordinate != it.coordinate && !it.notAllowed.contains(hasValue.value!!)
+            }.map {
+                OneOf.right<Value, NotAllowed>(NotAllowed(it.coordinate, hasValue.value!!))
+            }
+        }
     }
 
     fun singleValueAllowed(data : List<SudokuSolveData>): List<Conclusion> {
@@ -67,7 +81,7 @@ class GroupStrategy(val data: List<SudokuSolveData>) {
             }.toMap()
 
             return if (m.values.filter { !it }.size == 1) {
-                listOf(Conclusion(OneOf.left(Value(solveData.coordinate, m.filterValues { !it }.keys.first()))))
+                listOf(OneOf.left(Value(solveData.coordinate, m.filterValues { !it }.keys.first())))
             }  else {
                 listOf()
             }
@@ -75,8 +89,10 @@ class GroupStrategy(val data: List<SudokuSolveData>) {
     }
 
     fun gatherConclusions() :List<Conclusion> {
-        return strategies.flatMap {
+        val conclusions = strategies.flatMap {
             it(data)
-        }
+    }
+        println("Found conclusions of ${conclusions}")
+        return conclusions
     }
 }
