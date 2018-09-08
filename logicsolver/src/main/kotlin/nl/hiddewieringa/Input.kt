@@ -1,5 +1,7 @@
 package nl.hiddewieringa
 
+import java.util.regex.Pattern
+
 
 // Input
 
@@ -31,6 +33,30 @@ fun block(i: Int): List<Coordinate> {
 
 class Sudoku(values: Map<Coordinate, Int>) : SudokuInput(values, (1..9).flatMap {
     listOf(row(it), column(it), block(it))
-})
+}) {
+    companion object {
+        fun readFromString(s: String): Sudoku {
+            val split = s.split(Pattern.compile("\\s+")).filter { it.isNotEmpty() }
+            if (split.size != 81) {
+                throw Exception("Input size should be 81 non-whitespace strings")
+            }
+
+            val valueMap = (1..9).flatMap { i ->
+                (1..9).flatMap { j ->
+                    val c = split.get(9 * (i - 1) + (j - 1))
+                    if (c.length == 1 && c.toIntOrNull() != null && c.toInt() >= 1 && c.toInt() <= 9) {
+                        listOf(Coordinate(i, j) to c.toInt())
+                    } else {
+                        listOf()
+                    }
+                }
+            }.toMap()
+            println(valueMap)
+
+            return Sudoku(valueMap)
+        }
+
+    }
+}
 
 open class SudokuInput(val values: Map<Coordinate, Int>, val groups: List<List<Coordinate>>) : LogicPuzzleInput<SudokuInput, SudokuOutput>
