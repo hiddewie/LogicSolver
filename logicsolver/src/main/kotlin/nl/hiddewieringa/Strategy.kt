@@ -94,7 +94,7 @@ class GroupStrategy {
                         i to solveData.notAllowed.contains(i)
                     }.toMap()
 
-                    return if (m.values.filter { !it }.size == 1) {
+                    if (m.values.filter { !it }.size == 1) {
                         setOf(OneOf.left(Value(solveData.coordinate, m.filterValues { !it }.keys.first())))
                     } else {
                         setOf()
