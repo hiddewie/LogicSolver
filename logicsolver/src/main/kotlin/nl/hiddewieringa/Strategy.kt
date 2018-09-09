@@ -43,7 +43,7 @@ class GroupStrategy {
     /**
      * Finds the missing value if all but one value is filled in the group
      */
-    fun missingValue(data : List<SudokuSolveData>): Set<Conclusion> {
+    fun missingValue(data: List<SudokuSolveData>): Set<Conclusion> {
         val m = (1..9).map { i ->
             i to data.find { it.value == i }
         }.toMap()

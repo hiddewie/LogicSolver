@@ -49,7 +49,7 @@ class OneOf<L, R>(val left: L?, val right: R?) {
         return right!!
     }
 
-    override fun toString():String {
+    override fun toString(): String {
         return if (isLeft()) {
             "<${left()}|>"
         } else {

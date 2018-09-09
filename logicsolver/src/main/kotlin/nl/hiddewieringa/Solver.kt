@@ -61,7 +61,7 @@ class SudokuSolver : LogicPuzzleSolver<SudokuInput, SudokuOutput> {
      * Gathers conclusions from each group
      */
     private fun gatherConclusions(groups: Set<Group<Map<Coordinate, SudokuSolveData>, SudokuSolveData>>,
-                          data: MutableMap<Coordinate, SudokuSolveData>): Set<Conclusion> {
+                                  data: MutableMap<Coordinate, SudokuSolveData>): Set<Conclusion> {
 
         return groups.flatMap {
             groupStrategy.gatherConclusions(it(data))
