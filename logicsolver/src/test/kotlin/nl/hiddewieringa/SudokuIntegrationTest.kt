@@ -56,6 +56,39 @@ class SudokuIntegrationTest {
     }
 
     @Test
+    fun solveSudokuX() {
+        val input = SudokuX.readFromString("""
+ . 3 . . 8 . . . .
+ 9 . 6 5 3 7 . . .
+ 2 . . . 9 . . . 5
+ . . 3 . . . 1 . 8
+ . . 9 8 . 6 3 . .
+ 8 . 5 . . . 6 . .
+ 1 . . . 6 . . . 4
+ . . . 1 5 8 7 . 2
+ . . . . 2 . . 1 .
+""")
+
+        val solver = SudokuSolver()
+        val output = solver.solve(input)
+
+        val expected = """
+5 3 1 2 8 4 9 7 6
+9 4 6 5 3 7 2 8 1
+2 8 7 6 9 1 4 3 5
+6 7 3 9 4 5 1 2 8
+4 2 9 8 1 6 3 5 7
+8 1 5 3 7 2 6 4 9
+1 5 2 7 6 3 8 9 4
+3 9 4 1 5 8 7 6 2
+7 6 8 4 2 9 5 1 3
+"""
+
+        assertEquals(true, output.isLeft())
+        assertEquals(expected.trim(), output.left().toString().trim())
+    }
+
+    @Test
     fun failToSolveUnsolveableSudoku() {
         val valueMap = mapOf(
                 Coordinate(1, 1) to 1

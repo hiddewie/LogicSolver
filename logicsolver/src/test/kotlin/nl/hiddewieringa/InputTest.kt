@@ -58,4 +58,33 @@ class InputTest {
         assertEquals(1, Coordinate(1, 2).a)
         assertEquals(2, Coordinate(1, 2).b)
     }
+
+    @Test
+    fun testDiagonal() {
+        val expected = listOf(
+                Coordinate(1, 1),
+                Coordinate(2, 2),
+                Coordinate(3, 3),
+                Coordinate(4, 4),
+                Coordinate(5, 5),
+                Coordinate(6, 6),
+                Coordinate(7, 7),
+                Coordinate(8, 8),
+                Coordinate(9, 9)
+        )
+        assertEquals(expected, diagonalBT())
+
+        val expected2 = listOf(
+                Coordinate(1, 9),
+                Coordinate(2, 8),
+                Coordinate(3, 7),
+                Coordinate(4, 6),
+                Coordinate(5, 5),
+                Coordinate(6, 4),
+                Coordinate(7, 3),
+                Coordinate(8, 2),
+                Coordinate(9, 1)
+        )
+        assertEquals(expected2, diagonalTB())
+    }
 }

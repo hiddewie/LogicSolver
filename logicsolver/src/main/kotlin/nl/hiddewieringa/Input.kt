@@ -24,30 +24,53 @@ fun block(i: Int): List<Coordinate> {
     }
 }
 
+fun diagonalTB(): List<Coordinate> {
+    return (1..9).map {
+        Coordinate(it, 10 - it)
+    }
+}
+
+fun diagonalBT(): List<Coordinate> {
+    return (1..9).map {
+        Coordinate(it, it)
+    }
+}
+
+fun readValueMapFromString(s: String): Map<Coordinate, Int> {
+    val split = s.split(Pattern.compile("\\s+")).filter { it.isNotEmpty() }
+    if (split.size != 81) {
+        throw Exception("Input size should be 81 non-whitespace strings")
+    }
+
+    return (1..9).flatMap { i ->
+        (1..9).flatMap { j ->
+            val c = split[9 * (i - 1) + (j - 1)]
+            if (c.length == 1 && c.toIntOrNull() != null && c.toInt() >= 1 && c.toInt() <= 9) {
+                listOf(Coordinate(i, j) to c.toInt())
+            } else {
+                listOf()
+            }
+        }
+    }.toMap()
+}
+
 class Sudoku(values: Map<Coordinate, Int>) : SudokuInput(values, (1..9).flatMap {
     listOf(row(it), column(it), block(it))
 }) {
     companion object {
         fun readFromString(s: String): Sudoku {
-            val split = s.split(Pattern.compile("\\s+")).filter { it.isNotEmpty() }
-            if (split.size != 81) {
-                throw Exception("Input size should be 81 non-whitespace strings")
-            }
-
-            val valueMap = (1..9).flatMap { i ->
-                (1..9).flatMap { j ->
-                    val c = split[9 * (i - 1) + (j - 1)]
-                    if (c.length == 1 && c.toIntOrNull() != null && c.toInt() >= 1 && c.toInt() <= 9) {
-                        listOf(Coordinate(i, j) to c.toInt())
-                    } else {
-                        listOf()
-                    }
-                }
-            }.toMap()
-
-            return Sudoku(valueMap)
+            return Sudoku(readValueMapFromString(s))
         }
+    }
+}
 
+class SudokuX(values: Map<Coordinate, Int>) : SudokuInput(values, (1..9).flatMap {
+    listOf(row(it), column(it), block(it))
+} + listOf(diagonalBT(), diagonalTB())) {
+    companion object {
+        fun readFromString(s: String): SudokuX {
+            return SudokuX(readValueMapFromString(s))
+        }
     }
 }
 

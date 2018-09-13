@@ -17,6 +17,10 @@ class SudokuSolveData(val coordinate: Coordinate, val value: Int?, val notAllowe
     fun isEmpty(): Boolean {
         return !hasValue()
     }
+
+    override fun toString(): String {
+        return "SSD($coordinate, $value, $notAllowed)"
+    }
 }
 
 /**
@@ -63,8 +67,45 @@ class SudokuSolver : LogicPuzzleSolver<SudokuInput, SudokuOutput> {
     private fun gatherConclusions(groups: Set<Group<Map<Coordinate, SudokuSolveData>, SudokuSolveData>>,
                                   data: MutableMap<Coordinate, SudokuSolveData>): Set<Conclusion> {
 
-        return groups.flatMap {
-            groupStrategy.gatherConclusions(it(data))
+        return groups.flatMap { strategy ->
+            groupStrategy.gatherConclusions(strategy(data))
+        }.toSet() + gatherOverlappingConclusions(groups, data)
+    }
+
+    // TODO: extract into separate strategy
+    private fun gatherOverlappingConclusions(groups: Set<Group<Map<Coordinate, SudokuSolveData>, SudokuSolveData>>,
+                                             data: MutableMap<Coordinate, SudokuSolveData>): Set<Conclusion> {
+        val evaluatedGroups = groups.map { it(data) }
+        return evaluatedGroups.flatMap { group1 ->
+            (evaluatedGroups - setOf(group1)).flatMap { group2 ->
+                overlappingConclusionsForGroups(group1, group2, data)
+            }
+        }.toSet()
+    }
+
+    fun overlappingConclusionsForGroups(group1: List<SudokuSolveData>, group2: List<SudokuSolveData>,
+                                        data: MutableMap<Coordinate, SudokuSolveData>): Set<Conclusion> {
+        val overlappingCoordinates = group1.map { it.coordinate }.intersect(group2.map { it.coordinate })
+        if (overlappingCoordinates.size < 2) {
+            return setOf()
+        }
+        if (overlappingCoordinates.all { data[it]!!.hasValue() }) {
+            return setOf()
+        }
+
+        return (1..9).flatMap { i ->
+            val group1Other = ((group1.map { it.coordinate }) - overlappingCoordinates).map { data[it]!! }
+            val group2Other = ((group2.map { it.coordinate }) - overlappingCoordinates).map { data[it]!! }
+
+            if (group1Other.all { it.notAllowed.contains(i) }) {
+                group2Other.filter {
+                    it.isEmpty() && !it.notAllowed.contains(i)
+                }.map {
+                    OneOf.right<Value, NotAllowed>(NotAllowed(it.coordinate, i))
+                }
+            } else {
+                setOf<Conclusion>()
+            }
         }.toSet()
     }
 
@@ -123,9 +164,11 @@ class SudokuSolver : LogicPuzzleSolver<SudokuInput, SudokuOutput> {
      * Generates the output given solving data
      */
     private fun toOutput(data: MutableMap<Coordinate, SudokuSolveData>): OneOf<SudokuOutput, List<LogicSolveError>> {
-        val valueMap = data.mapValues {
-            it.value.value!!
-        }
+        val valueMap = data
+                .filterValues { it.value != null }
+                .mapValues {
+                    it.value.value!!
+                }
         return OneOf.left(SudokuOutput(valueMap))
     }
 }
