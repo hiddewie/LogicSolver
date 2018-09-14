@@ -36,6 +36,12 @@ fun diagonalBT(): List<Coordinate> {
     }
 }
 
+fun hyperBlock(i: Int): List<Coordinate> {
+    return (1..9).map {
+        Coordinate(2 + 4 * ((i - 1) / 2) + (it - 1) / 3, 2 + 4 * ((i - 1) % 2) + (it - 1) % 3)
+    }
+}
+
 fun readValueMapFromString(s: String): Map<Coordinate, Int> {
     val split = s.split(Pattern.compile("\\s+")).filter { it.isNotEmpty() }
     if (split.size != 81) {
@@ -60,6 +66,16 @@ class Sudoku(values: Map<Coordinate, Int>) : SudokuInput(values, (1..9).flatMap 
     companion object {
         fun readFromString(s: String): Sudoku {
             return Sudoku(readValueMapFromString(s))
+        }
+    }
+}
+
+class SudokuHyper(values: Map<Coordinate, Int>) : SudokuInput(values, (1..9).flatMap {
+    listOf(row(it), column(it), block(it))
+} + (1..4).map { hyperBlock(it) }) {
+    companion object {
+        fun readFromString(s: String): SudokuHyper {
+            return SudokuHyper(readValueMapFromString(s))
         }
     }
 }

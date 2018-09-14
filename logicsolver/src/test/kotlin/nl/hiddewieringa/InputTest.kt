@@ -54,6 +54,22 @@ class InputTest {
     }
 
     @Test
+    fun testHyperBlock() {
+        val expected = listOf(
+                Coordinate(6,6),
+                Coordinate(6,7),
+                Coordinate(6,8),
+                Coordinate(7,6),
+                Coordinate(7,7),
+                Coordinate(7,8),
+                Coordinate(8,6),
+                Coordinate(8,7),
+                Coordinate(8,8)
+        )
+        assertEquals(expected, hyperBlock(4))
+    }
+
+    @Test
     fun coordinateTest() {
         assertEquals(1, Coordinate(1, 2).a)
         assertEquals(2, Coordinate(1, 2).b)
