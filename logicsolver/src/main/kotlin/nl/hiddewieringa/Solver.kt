@@ -142,6 +142,10 @@ class SudokuSolver : LogicPuzzleSolver<SudokuInput, SudokuOutput> {
             conclusions.forEach {
                 processConclusion(data, it)
             }
+
+            if (!isValid(groups, data)) {
+                throw Exception("The puzzle is not valid: current state: ${toOutput(data)}")
+            }
         } while (!conclusions.isEmpty())
 
         return if (isSolved(data)) {
@@ -157,6 +161,19 @@ class SudokuSolver : LogicPuzzleSolver<SudokuInput, SudokuOutput> {
     private fun isSolved(data: MutableMap<Coordinate, SudokuSolveData>): Boolean {
         return !data.values.any {
             it.value == null
+        }
+    }
+
+    /**
+     * Checks if the puzzle is valid
+     */
+    private fun isValid(groups: Set<Group<Map<Coordinate, SudokuSolveData>, SudokuSolveData>>,
+                        data: MutableMap<Coordinate, SudokuSolveData>): Boolean {
+        return groups.all { group ->
+            val groupData = group(data)
+            (1..9).all {i ->
+                groupData.filter { it.hasValue() }.count { it.value == i } <= 1
+            }
         }
     }
 
