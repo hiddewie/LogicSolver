@@ -1,4 +1,4 @@
-package nl.hiddewieringa
+package nl.hiddewieringa.logicsolver
 
 
 data class SudokuOutput(val values: Map<Coordinate, Int>) {

@@ -1,4 +1,4 @@
-package nl.hiddewieringa
+package nl.hiddewieringa.logicsolver
 
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -68,15 +68,15 @@ class StrategyTest {
         assertEquals(setOf(), SudokuSolver().overlappingConclusionsForGroups(group1, group2, mutableMapOf()))
 
         val group3 = listOf(
-                SudokuSolveData(Coordinate(1,1), null, listOf(1)),
-                SudokuSolveData(Coordinate(1,2), null, listOf(1)),
-                SudokuSolveData(Coordinate(1,3), null, listOf(1)),
-                SudokuSolveData(Coordinate(2,1), null, listOf()),
-                SudokuSolveData(Coordinate(2,2), null, listOf()),
-                SudokuSolveData(Coordinate(2,3), null, listOf()),
-                SudokuSolveData(Coordinate(3,1), null, listOf(1)),
-                SudokuSolveData(Coordinate(3,2), null, listOf(1)),
-                SudokuSolveData(Coordinate(3,3), null, listOf(1))
+                SudokuSolveData(Coordinate(1, 1), null, listOf(1)),
+                SudokuSolveData(Coordinate(1, 2), null, listOf(1)),
+                SudokuSolveData(Coordinate(1, 3), null, listOf(1)),
+                SudokuSolveData(Coordinate(2, 1), null, listOf()),
+                SudokuSolveData(Coordinate(2, 2), null, listOf()),
+                SudokuSolveData(Coordinate(2, 3), null, listOf()),
+                SudokuSolveData(Coordinate(3, 1), null, listOf(1)),
+                SudokuSolveData(Coordinate(3, 2), null, listOf(1)),
+                SudokuSolveData(Coordinate(3, 3), null, listOf(1))
         )
         val data = (block(1) + row(2)).toSet().map {
             it to SudokuSolveData(it, null, if (it.a != 2) listOf(1) else listOf())

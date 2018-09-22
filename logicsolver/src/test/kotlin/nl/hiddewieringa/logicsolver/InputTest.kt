@@ -1,5 +1,6 @@
-package nl.hiddewieringa
+package nl.hiddewieringa.logicsolver
 
+import nl.hiddewieringa.logicsolver.*
 import org.junit.Test
 import kotlin.test.assertEquals
 
@@ -56,15 +57,15 @@ class InputTest {
     @Test
     fun testHyperBlock() {
         val expected = listOf(
-                Coordinate(6,6),
-                Coordinate(6,7),
-                Coordinate(6,8),
-                Coordinate(7,6),
-                Coordinate(7,7),
-                Coordinate(7,8),
-                Coordinate(8,6),
-                Coordinate(8,7),
-                Coordinate(8,8)
+                Coordinate(6, 6),
+                Coordinate(6, 7),
+                Coordinate(6, 8),
+                Coordinate(7, 6),
+                Coordinate(7, 7),
+                Coordinate(7, 8),
+                Coordinate(8, 6),
+                Coordinate(8, 7),
+                Coordinate(8, 8)
         )
         assertEquals(expected, hyperBlock(4))
     }

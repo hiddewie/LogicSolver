@@ -1,4 +1,4 @@
-package nl.hiddewieringa
+package nl.hiddewieringa.logicsolver
 
 class OneOf<L, R>(val left: L?, val right: R?) {
 

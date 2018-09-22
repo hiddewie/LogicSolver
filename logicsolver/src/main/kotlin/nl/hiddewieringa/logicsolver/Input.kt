@@ -1,4 +1,4 @@
-package nl.hiddewieringa
+package nl.hiddewieringa.logicsolver
 
 import java.util.regex.Pattern
 

@@ -1,4 +1,4 @@
-package nl.hiddewieringa
+package nl.hiddewieringa.logicsolver
 
 interface LogicPuzzleSolver<IN, OUT> {
     fun solve(input: IN): OneOf<OUT, List<LogicSolveError>>

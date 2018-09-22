@@ -1,4 +1,4 @@
-package nl.hiddewieringa
+package nl.hiddewieringa.logicsolver
 
 import org.junit.Assert.assertEquals
 import org.junit.Test

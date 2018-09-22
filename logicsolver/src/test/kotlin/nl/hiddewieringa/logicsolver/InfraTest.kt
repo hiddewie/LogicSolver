@@ -1,5 +1,6 @@
-package nl.hiddewieringa
+package nl.hiddewieringa.logicsolver
 
+import nl.hiddewieringa.logicsolver.OneOf
 import org.junit.Test
 import kotlin.test.assertEquals
 

@@ -1,4 +1,4 @@
-package nl.hiddewieringa
+package nl.hiddewieringa.logicsolver
 
 /**
  * A conclusion is either a found value, or a value which is not allowed somewhere
@@ -6,7 +6,7 @@ package nl.hiddewieringa
 typealias Conclusion = OneOf<Value, NotAllowed>
 
 /**
- * A strategy takes some input and genereates a set of conclusions
+ * A strategy takes some input and generates a set of conclusions
  */
 typealias Strategy<I, C> = (I) -> Set<C>
 
