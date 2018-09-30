@@ -1,5 +1,6 @@
 plugins {
     id 'org.jetbrains.kotlin.jvm' version '1.2.71'
+    id 'jacoco'
 }
 
 group 'nl.hiddewieringa'
@@ -34,4 +35,13 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-reflect"
     testCompile "org.jetbrains.kotlin:kotlin-test"
     testCompile "org.jetbrains.kotlin:kotlin-test-junit"
+}
+
+jacoco {
+    toolVersion = '0.8.1'
+}
+jacocoTestReport {
+    reports {
+        xml.enabled true
+    }
 }
