@@ -28,7 +28,7 @@ class SudokuSolveData(val coordinate: Coordinate, val value: Int?, val notAllowe
  */
 class SudokuSolver : LogicPuzzleSolver<SudokuInput, SudokuOutput> {
 
-    val groupStrategy = GroupStrategy()
+    private val groupStrategy = GroupStrategy()
 
     /**
      * Migrates input groups to Group objects
@@ -68,7 +68,7 @@ class SudokuSolver : LogicPuzzleSolver<SudokuInput, SudokuOutput> {
                                   data: MutableMap<Coordinate, SudokuSolveData>): Set<Conclusion> {
 
         return groups.flatMap { strategy ->
-            groupStrategy.gatherConclusions(strategy(data))
+            groupStrategy(strategy(data))
         }.toSet() + gatherOverlappingConclusions(groups, data)
     }
 

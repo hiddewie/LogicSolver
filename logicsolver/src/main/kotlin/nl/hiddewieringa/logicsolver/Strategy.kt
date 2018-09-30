@@ -26,41 +26,29 @@ data class NotAllowed(val coordinate: Coordinate, val value: Int)
 typealias Group<M, T> = (M) -> List<T>
 
 /**
- * The group strategy gathers conclusions about cells in a group
+ * Finds the missing value if all but one value is filled in the group
  */
-class GroupStrategy {
-
-    /**
-     * The substrategies that are used
-     */
-    val strategies: Set<Strategy<List<SudokuSolveData>, Conclusion>> = setOf(
-            ::missingValue,
-            ::filledValueNotAllowedInGroup,
-            ::singleValueAllowed,
-            ::filledValueRestNotAllowed
-    )
-
-    /**
-     * Finds the missing value if all but one value is filled in the group
-     */
-    fun missingValue(data: List<SudokuSolveData>): Set<Conclusion> {
+class MissingValueGroupStrategy : Strategy<List<SudokuSolveData>, Conclusion> {
+    override fun invoke(data: List<SudokuSolveData>): Set<OneOf<Value, NotAllowed>> {
         val m = (1..9).map { i ->
             i to data.find { it.value == i }
         }.toMap()
 
-        return if ((1..9).filter { m.get(it) == null }.size == 1) {
+        return if ((1..9).filter { m[it] == null }.size == 1) {
             val coordinate = data.find { it.value == null }!!.coordinate
-            val value = (1..9).find { m.get(it) == null }!!
+            val value = (1..9).find { m[it] == null }!!
             setOf(OneOf.left(Value(coordinate, value)))
         } else {
             setOf()
         }
     }
+}
 
-    /**
-     * If a value is given in a cell, than all other cells in the group are not allowed to contain that value
-     */
-    fun filledValueNotAllowedInGroup(data: List<SudokuSolveData>): Set<Conclusion> {
+/**
+ * If a value is given in a cell, than all other cells in the group are not allowed to contain that value
+ */
+class FilledValueNotAllowedInGroupStrategy : Strategy<List<SudokuSolveData>, Conclusion> {
+    override fun invoke(data: List<SudokuSolveData>): Set<OneOf<Value, NotAllowed>> {
         return data.filter(SudokuSolveData::hasValue)
                 .flatMap { hasValue ->
                     data.filter {
@@ -70,24 +58,13 @@ class GroupStrategy {
                     }
                 }.toSet()
     }
+}
 
-    /**
-     * If a value is given in a cell, then all other values are not allowed in that cell
-     */
-    fun filledValueRestNotAllowed(data: List<SudokuSolveData>): Set<Conclusion> {
-        return data.filter(SudokuSolveData::hasValue)
-                .flatMap { hasValue ->
-                    val missingNotAllowed = (1..9) - listOf(hasValue.value!!) - hasValue.notAllowed
-                    missingNotAllowed.map {
-                        OneOf.right<Value, NotAllowed>(NotAllowed(hasValue.coordinate, it))
-                    }
-                }.toSet()
-    }
-
-    /**
-     * If all but one value is not allowed in a cell, then that value must be true
-     */
-    fun singleValueAllowed(data: List<SudokuSolveData>): Set<Conclusion> {
+/**
+ * If all but one value is not allowed in a cell, then that value must be true
+ */
+class SingleValueAllowedStrategy : Strategy<List<SudokuSolveData>, Conclusion> {
+    override fun invoke(data: List<SudokuSolveData>): Set<OneOf<Value, NotAllowed>> {
         return data.filter(SudokuSolveData::isEmpty)
                 .flatMap<SudokuSolveData, Conclusion> { solveData ->
                     val m = (1..9).map { i ->
@@ -101,13 +78,44 @@ class GroupStrategy {
                     }
                 }.toSet()
     }
+}
+
+/**
+ * If a value is given in a cell, then all other values are not allowed in that cell
+ */
+class FilledValueRestNotAllowedStrategy : Strategy<List<SudokuSolveData>, Conclusion> {
+    override fun invoke(data: List<SudokuSolveData>): Set<OneOf<Value, NotAllowed>> {
+        return data.filter(SudokuSolveData::hasValue)
+                .flatMap { hasValue ->
+                    val missingNotAllowed = (1..9) - listOf(hasValue.value!!) - hasValue.notAllowed
+                    missingNotAllowed.map {
+                        OneOf.right<Value, NotAllowed>(NotAllowed(hasValue.coordinate, it))
+                    }
+                }.toSet()
+    }
+}
+
+/**
+ * The group strategy gathers conclusions about cells in a group
+ */
+class GroupStrategy : Strategy<List<SudokuSolveData>, Conclusion> {
+
+    /**
+     * The substrategies that are used
+     */
+    private val strategies: Set<Strategy<List<SudokuSolveData>, Conclusion>> = setOf(
+            MissingValueGroupStrategy(),
+            FilledValueNotAllowedInGroupStrategy(),
+            SingleValueAllowedStrategy(),
+            FilledValueRestNotAllowedStrategy()
+    )
 
     /**
      * Gathers all conclusions from the substrategies
      */
-    fun gatherConclusions(data: List<SudokuSolveData>): Set<Conclusion> {
-        return strategies.flatMap {
-            it(data)
+    override fun invoke(data: List<SudokuSolveData>): Set<OneOf<Value, NotAllowed>> {
+        return strategies.flatMap { strategy ->
+            strategy(data)
         }.toSet()
     }
 }
