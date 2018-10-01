@@ -8,40 +8,42 @@ data class Coordinate(val a: Int, val b: Int)
 
 val sudokuRange = (1..9)
 
-fun row(i: Int): List<Coordinate> {
+fun coordinates(x: (i: Int) -> Int, y: (I: Int) -> Int): List<Coordinate> {
     return sudokuRange.map {
-        Coordinate(i, it)
+        Coordinate(x(it), y(it))
     }
+}
+
+fun row(i: Int): List<Coordinate> {
+    return coordinates({ i }, { it })
 }
 
 fun column(i: Int): List<Coordinate> {
-    return sudokuRange.map {
-        Coordinate(it, i)
-    }
+    return coordinates({ it }, { i })
 }
 
 fun block(i: Int): List<Coordinate> {
-    return sudokuRange.map {
-        Coordinate(1 + 3 * ((i - 1) / 3) + (it - 1) / 3, 1 + 3 * ((i - 1) % 3) + (it - 1) % 3)
-    }
+    return coordinates({
+        1 + 3 * ((i - 1) / 3) + (it - 1) / 3
+    }, {
+        1 + 3 * ((i - 1) % 3) + (it - 1) % 3
+    })
 }
 
 fun diagonalTB(): List<Coordinate> {
-    return sudokuRange.map {
-        Coordinate(it, 10 - it)
-    }
+    return coordinates({ it }, { 10 - it })
 }
 
 fun diagonalBT(): List<Coordinate> {
-    return sudokuRange.map {
-        Coordinate(it, it)
-    }
+    return coordinates({ it }, { it })
 }
 
 fun hyperBlock(i: Int): List<Coordinate> {
-    return sudokuRange.map {
-        Coordinate(2 + 4 * ((i - 1) / 2) + (it - 1) / 3, 2 + 4 * ((i - 1) % 2) + (it - 1) % 3)
-    }
+    return coordinates({
+        2 + 4 * ((i - 1) / 2) + (it - 1) / 3
+    }, {
+        2 + 4 * ((i - 1) % 2) + (it - 1) % 3
+    })
 }
 
 fun readValueMapFromString(s: String): Map<Coordinate, Int> {
