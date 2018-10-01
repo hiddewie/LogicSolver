@@ -62,9 +62,11 @@ fun readValueMapFromString(s: String): Map<Coordinate, Int> {
     }.toMap()
 }
 
-class Sudoku(values: Map<Coordinate, Int>) : SudokuInput(values, sudokuRange.flatMap {
+val sudokuGroups = sudokuRange.flatMap {
     listOf(row(it), column(it), block(it))
-}) {
+}
+
+class Sudoku(values: Map<Coordinate, Int>) : SudokuInput(values, sudokuGroups) {
     companion object {
         fun readFromString(s: String): Sudoku {
             return Sudoku(readValueMapFromString(s))
@@ -72,9 +74,7 @@ class Sudoku(values: Map<Coordinate, Int>) : SudokuInput(values, sudokuRange.fla
     }
 }
 
-class SudokuHyper(values: Map<Coordinate, Int>) : SudokuInput(values, sudokuRange.flatMap {
-    listOf(row(it), column(it), block(it))
-} + (1..4).map { hyperBlock(it) }) {
+class SudokuHyper(values: Map<Coordinate, Int>) : SudokuInput(values, sudokuGroups + (1..4).map { hyperBlock(it) }) {
     companion object {
         fun readFromString(s: String): SudokuHyper {
             return SudokuHyper(readValueMapFromString(s))
@@ -82,9 +82,7 @@ class SudokuHyper(values: Map<Coordinate, Int>) : SudokuInput(values, sudokuRang
     }
 }
 
-class SudokuX(values: Map<Coordinate, Int>) : SudokuInput(values, sudokuRange.flatMap {
-    listOf(row(it), column(it), block(it))
-} + listOf(diagonalBT(), diagonalTB())) {
+class SudokuX(values: Map<Coordinate, Int>) : SudokuInput(values, sudokuGroups + listOf(diagonalBT(), diagonalTB())) {
     companion object {
         fun readFromString(s: String): SudokuX {
             return SudokuX(readValueMapFromString(s))
