@@ -29,6 +29,7 @@ class SudokuSolveData(val coordinate: Coordinate, val value: Int?, val notAllowe
 class SudokuSolver : LogicPuzzleSolver<SudokuInput, SudokuOutput> {
 
     private val groupStrategy = GroupStrategy()
+    private val overlappingGroupsStrategy = OverlappingGroupsStrategy()
 
     /**
      * Migrates input groups to Group objects
@@ -69,44 +70,7 @@ class SudokuSolver : LogicPuzzleSolver<SudokuInput, SudokuOutput> {
 
         return groups.flatMap { strategy ->
             groupStrategy(strategy(data))
-        }.toSet() + gatherOverlappingConclusions(groups, data)
-    }
-
-    // TODO: extract into separate strategy
-    private fun gatherOverlappingConclusions(groups: Set<Group<Map<Coordinate, SudokuSolveData>, SudokuSolveData>>,
-                                             data: MutableMap<Coordinate, SudokuSolveData>): Set<Conclusion> {
-        val evaluatedGroups = groups.map { it(data) }
-        return evaluatedGroups.flatMap { group1 ->
-            (evaluatedGroups - setOf(group1)).flatMap { group2 ->
-                overlappingConclusionsForGroups(group1, group2, data)
-            }
-        }.toSet()
-    }
-
-    fun overlappingConclusionsForGroups(group1: List<SudokuSolveData>, group2: List<SudokuSolveData>,
-                                        data: MutableMap<Coordinate, SudokuSolveData>): Set<Conclusion> {
-        val overlappingCoordinates = group1.map { it.coordinate }.intersect(group2.map { it.coordinate })
-        if (overlappingCoordinates.size < 2) {
-            return setOf()
-        }
-        if (overlappingCoordinates.all { data[it]!!.hasValue() }) {
-            return setOf()
-        }
-
-        return (1..9).flatMap { i ->
-            val group1Other = ((group1.map { it.coordinate }) - overlappingCoordinates).map { data[it]!! }
-            val group2Other = ((group2.map { it.coordinate }) - overlappingCoordinates).map { data[it]!! }
-
-            if (group1Other.all { it.notAllowed.contains(i) }) {
-                group2Other.filter {
-                    it.isEmpty() && !it.notAllowed.contains(i)
-                }.map {
-                    OneOf.right<Value, NotAllowed>(NotAllowed(it.coordinate, i))
-                }
-            } else {
-                setOf<Conclusion>()
-            }
-        }.toSet()
+        }.toSet() + overlappingGroupsStrategy(Pair(groups, data))
     }
 
     /**

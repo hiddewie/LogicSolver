@@ -56,7 +56,7 @@ class StrategyTest {
     @Test
     fun overlapStrategyTest() {
         // No overlap
-        assertEquals(setOf(), SudokuSolver().overlappingConclusionsForGroups(listOf(), listOf(), mutableMapOf()))
+        assertEquals(setOf(), OverlappingGroupsStrategy().overlappingConclusionsForGroups(listOf(), listOf(), mapOf()))
 
         val group1 = row(2).map {
             SudokuSolveData(it, null, listOf())
@@ -65,7 +65,7 @@ class StrategyTest {
             SudokuSolveData(it, null, listOf())
         }
         // One overlap
-        assertEquals(setOf(), SudokuSolver().overlappingConclusionsForGroups(group1, group2, mutableMapOf()))
+        assertEquals(setOf(), OverlappingGroupsStrategy().overlappingConclusionsForGroups(group1, group2, mapOf()))
 
         val group3 = listOf(
                 SudokuSolveData(Coordinate(1, 1), null, listOf(1)),
@@ -87,8 +87,8 @@ class StrategyTest {
         }.toSet()
 
         // Three overlap (no conclusion)
-        assertEquals(setOf(), SudokuSolver().overlappingConclusionsForGroups(group1, group3, data))
+        assertEquals(setOf(), OverlappingGroupsStrategy().overlappingConclusionsForGroups(group1, group3, data))
         // Three overlap other way around (conclusions)
-        assertEquals(expected, SudokuSolver().overlappingConclusionsForGroups(group3, group1, data))
+        assertEquals(expected, OverlappingGroupsStrategy().overlappingConclusionsForGroups(group3, group1, data))
     }
 }

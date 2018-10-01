@@ -29,7 +29,7 @@ typealias Group<M, T> = (M) -> List<T>
  * Finds the missing value if all but one value is filled in the group
  */
 class MissingValueGroupStrategy : Strategy<List<SudokuSolveData>, Conclusion> {
-    override fun invoke(data: List<SudokuSolveData>): Set<OneOf<Value, NotAllowed>> {
+    override fun invoke(data: List<SudokuSolveData>): Set<Conclusion> {
         val m = (1..9).map { i ->
             i to data.find { it.value == i }
         }.toMap()
@@ -48,7 +48,7 @@ class MissingValueGroupStrategy : Strategy<List<SudokuSolveData>, Conclusion> {
  * If a value is given in a cell, than all other cells in the group are not allowed to contain that value
  */
 class FilledValueNotAllowedInGroupStrategy : Strategy<List<SudokuSolveData>, Conclusion> {
-    override fun invoke(data: List<SudokuSolveData>): Set<OneOf<Value, NotAllowed>> {
+    override fun invoke(data: List<SudokuSolveData>): Set<Conclusion> {
         return data.filter(SudokuSolveData::hasValue)
                 .flatMap { hasValue ->
                     data.filter {
@@ -64,7 +64,7 @@ class FilledValueNotAllowedInGroupStrategy : Strategy<List<SudokuSolveData>, Con
  * If all but one value is not allowed in a cell, then that value must be true
  */
 class SingleValueAllowedStrategy : Strategy<List<SudokuSolveData>, Conclusion> {
-    override fun invoke(data: List<SudokuSolveData>): Set<OneOf<Value, NotAllowed>> {
+    override fun invoke(data: List<SudokuSolveData>): Set<Conclusion> {
         return data.filter(SudokuSolveData::isEmpty)
                 .flatMap<SudokuSolveData, Conclusion> { solveData ->
                     val m = (1..9).map { i ->
@@ -84,7 +84,7 @@ class SingleValueAllowedStrategy : Strategy<List<SudokuSolveData>, Conclusion> {
  * If a value is given in a cell, then all other values are not allowed in that cell
  */
 class FilledValueRestNotAllowedStrategy : Strategy<List<SudokuSolveData>, Conclusion> {
-    override fun invoke(data: List<SudokuSolveData>): Set<OneOf<Value, NotAllowed>> {
+    override fun invoke(data: List<SudokuSolveData>): Set<Conclusion> {
         return data.filter(SudokuSolveData::hasValue)
                 .flatMap { hasValue ->
                     val missingNotAllowed = (1..9) - listOf(hasValue.value!!) - hasValue.notAllowed
@@ -92,6 +92,50 @@ class FilledValueRestNotAllowedStrategy : Strategy<List<SudokuSolveData>, Conclu
                         OneOf.right<Value, NotAllowed>(NotAllowed(hasValue.coordinate, it))
                     }
                 }.toSet()
+    }
+}
+
+class OverlappingGroupsStrategy : Strategy<Pair<Set<Group<Map<Coordinate, SudokuSolveData>, SudokuSolveData>>, Map<Coordinate, SudokuSolveData>>, Conclusion> {
+
+    override fun invoke(pair: Pair<
+            Set<Group<Map<Coordinate, SudokuSolveData>, SudokuSolveData>>,
+            Map<Coordinate, SudokuSolveData>>
+    ): Set<Conclusion> {
+        val groups = pair.first
+        val data = pair.second
+
+        val evaluatedGroups = groups.map { it(data) }
+        return evaluatedGroups.flatMap { group1 ->
+            (evaluatedGroups - setOf(group1)).flatMap { group2 ->
+                overlappingConclusionsForGroups(group1, group2, data)
+            }
+        }.toSet()
+    }
+
+    fun overlappingConclusionsForGroups(group1: List<SudokuSolveData>, group2: List<SudokuSolveData>,
+                                                data: Map<Coordinate, SudokuSolveData>): Set<Conclusion> {
+        val overlappingCoordinates = group1.map { it.coordinate }.intersect(group2.map { it.coordinate })
+        if (overlappingCoordinates.size < 2) {
+            return setOf()
+        }
+        if (overlappingCoordinates.all { data[it]!!.hasValue() }) {
+            return setOf()
+        }
+
+        return (1..9).flatMap { i ->
+            val group1Other = ((group1.map { it.coordinate }) - overlappingCoordinates).map { data[it]!! }
+            val group2Other = ((group2.map { it.coordinate }) - overlappingCoordinates).map { data[it]!! }
+
+            if (group1Other.all { it.notAllowed.contains(i) }) {
+                group2Other.filter {
+                    it.isEmpty() && !it.notAllowed.contains(i)
+                }.map {
+                    OneOf.right<Value, NotAllowed>(NotAllowed(it.coordinate, i))
+                }
+            } else {
+                setOf<Conclusion>()
+            }
+        }.toSet()
     }
 }
 
