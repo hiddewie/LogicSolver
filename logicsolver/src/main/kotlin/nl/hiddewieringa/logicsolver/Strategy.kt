@@ -145,17 +145,23 @@ class OverlappingGroupsStrategy : Strategy<GroupsWithData, Conclusion> {
         }
 
         return (1..9).flatMap { i ->
-            val group1Other = group1.ignoreCoordinates(overlappingCoordinates, data)
-            val group2Other = group2.ignoreCoordinates(overlappingCoordinates, data)
-
-            if (group1Other.all { it.notAllowed.contains(i) }) {
-                group2Other.filter {
-                    it.isEmpty() && !it.notAllowed.contains(i)
-                }.concludeNotAllowed({ it.coordinate }, { i })
-            } else {
-                setOf<Conclusion>()
-            }
+            overlappingConclusionsForGroupsAndValue(
+                    group1.ignoreCoordinates(overlappingCoordinates, data),
+                    group2.ignoreCoordinates(overlappingCoordinates, data),
+                    i
+            )
         }.toSet()
+    }
+
+    private fun overlappingConclusionsForGroupsAndValue(group1Other: List<SudokuSolveData>, group2Other: List<SudokuSolveData>,
+                                                        value: Int): List<Conclusion> {
+        return if (group1Other.all { it.notAllowed.contains(value) }) {
+            group2Other.filter {
+                it.isEmpty() && !it.notAllowed.contains(value)
+            }.concludeNotAllowed({ it.coordinate }, { value })
+        } else {
+            listOf()
+        }
     }
 }
 
