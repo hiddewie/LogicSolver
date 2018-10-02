@@ -1,6 +1,5 @@
 package nl.hiddewieringa.logicsolver
 
-import nl.hiddewieringa.logicsolver.OneOf
 import org.junit.Test
 import kotlin.test.assertEquals
 
@@ -10,6 +9,18 @@ class InfraTest {
     fun oneOf() {
         assertEquals(true, OneOf.left<Int, Int>(1).isLeft())
         assertEquals(true, OneOf.right<Int, Int>(1).isRight())
+    }
+
+    @Test
+    fun testToString() {
+        assertEquals("<1|>", OneOf.left<Int, Int>(1).toString())
+        assertEquals("<|1>", OneOf.right<Int, Int>(1).toString())
+    }
+
+    @Test
+    fun match() {
+        assertEquals(2, OneOf.left<Int, Int>(1).match({ 2 }, { 3 }))
+        assertEquals(3, OneOf.right<Int, Int>(1).match({ 2 }, { 3 }))
     }
 
     @Test
