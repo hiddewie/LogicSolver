@@ -69,9 +69,7 @@ class OneOf<L, R>(val left: L?, val right: R?) {
 
         other as OneOf<*, *>
 
-        if (left != other.left) return false
-        if (right != other.right) return false
-
-        return true
+        return left == other.left &&
+                right == other.right
     }
 }

@@ -37,6 +37,8 @@ data class NotAllowed(val coordinate: Coordinate, val value: Int)
  */
 typealias Group<M, T> = (M) -> List<T>
 
+typealias SudokuGroup = Group<Map<Coordinate, SudokuSolveData>, SudokuSolveData>
+
 /**
  * Finds the missing value if all but one value is filled in the group
  */
@@ -104,12 +106,11 @@ class FilledValueRestNotAllowedStrategy : Strategy<List<SudokuSolveData>, Conclu
     }
 }
 
-class OverlappingGroupsStrategy : Strategy<Pair<Set<Group<Map<Coordinate, SudokuSolveData>, SudokuSolveData>>, Map<Coordinate, SudokuSolveData>>, Conclusion> {
+typealias GroupsWithData = Pair<Set<SudokuGroup>, Map<Coordinate, SudokuSolveData>>
 
-    override fun invoke(pair: Pair<
-            Set<Group<Map<Coordinate, SudokuSolveData>, SudokuSolveData>>,
-            Map<Coordinate, SudokuSolveData>>
-    ): Set<Conclusion> {
+class OverlappingGroupsStrategy : Strategy<GroupsWithData, Conclusion> {
+
+    override fun invoke(pair: GroupsWithData): Set<Conclusion> {
         val groups = pair.first
         val data = pair.second
 
