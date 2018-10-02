@@ -2,9 +2,7 @@
 
 Solver for logic puzzles, easily extensible for other kind of puzzles
 
-Build status (using Semaphore CI): [![Build Status](https://semaphoreci.com/api/v1/hiddewie/logicsolver/branches/master/badge.svg)](https://semaphoreci.com/hiddewie/logicsolver)
-
-Maintanability (using CodeClimate): [![Maintainability](https://api.codeclimate.com/v1/badges/78c7a17b06141586c06a/maintainability)](https://codeclimate.com/github/hiddewie/LogicSolver/maintainability)
+[![Build Status](https://semaphoreci.com/api/v1/hiddewie/logicsolver/branches/master/badge.svg)](https://semaphoreci.com/hiddewie/logicsolver) [![Maintainability](https://api.codeclimate.com/v1/badges/78c7a17b06141586c06a/maintainability)](https://codeclimate.com/github/hiddewie/LogicSolver/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/78c7a17b06141586c06a/test_coverage)](https://codeclimate.com/github/hiddewie/LogicSolver/test_coverage)
 
 ## Idea
 
