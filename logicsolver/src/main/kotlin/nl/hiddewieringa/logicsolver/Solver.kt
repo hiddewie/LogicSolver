@@ -34,7 +34,7 @@ class SudokuSolver : LogicPuzzleSolver<SudokuInput, SudokuOutput> {
     /**
      * Migrates input groups to Group objects
      */
-    private fun toGroups(groups: List<List<Coordinate>>): Set<Group<Map<Coordinate, SudokuSolveData>, SudokuSolveData>> {
+    private fun toGroups(groups: List<List<Coordinate>>): Set<SudokuGroup> {
         return groups.map { coordinates: List<Coordinate> ->
             { v: Map<Coordinate, SudokuSolveData> ->
                 coordinates.map { v[it] }.filterNotNull()
@@ -65,8 +65,7 @@ class SudokuSolver : LogicPuzzleSolver<SudokuInput, SudokuOutput> {
     /**
      * Gathers conclusions from each group
      */
-    private fun gatherConclusions(groups: Set<Group<Map<Coordinate, SudokuSolveData>, SudokuSolveData>>,
-                                  data: MutableMap<Coordinate, SudokuSolveData>): Set<Conclusion> {
+    private fun gatherConclusions(groups: Set<SudokuGroup>, data: MutableMap<Coordinate, SudokuSolveData>): Set<Conclusion> {
 
         return groups.flatMap { strategy ->
             groupStrategy(strategy(data))
@@ -94,7 +93,7 @@ class SudokuSolver : LogicPuzzleSolver<SudokuInput, SudokuOutput> {
      * Then, either the puzzle has been solved or an error is returned.
      */
     override fun solve(input: SudokuInput): OneOf<SudokuOutput, List<LogicSolveError>> {
-        val groups: Set<Group<Map<Coordinate, SudokuSolveData>, SudokuSolveData>> = toGroups(input.groups)
+        val groups = toGroups(input.groups)
         val data = buildSolvingData(input.values)
 
         if (isSolved(data)) {
@@ -131,8 +130,7 @@ class SudokuSolver : LogicPuzzleSolver<SudokuInput, SudokuOutput> {
     /**
      * Checks if the puzzle is valid
      */
-    private fun isValid(groups: Set<Group<Map<Coordinate, SudokuSolveData>, SudokuSolveData>>,
-                        data: MutableMap<Coordinate, SudokuSolveData>): Boolean {
+    private fun isValid(groups: Set<SudokuGroup>, data: MutableMap<Coordinate, SudokuSolveData>): Boolean {
         return groups.all { group ->
             val groupData = group(data)
             (1..9).all {i ->
