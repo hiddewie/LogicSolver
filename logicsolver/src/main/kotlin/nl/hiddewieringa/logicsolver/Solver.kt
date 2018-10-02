@@ -45,21 +45,10 @@ class SudokuSolver : LogicPuzzleSolver<SudokuInput, SudokuOutput> {
     /**
      * Builds solving data from input
      */
-    private fun buildSolvingData(input: Map<Coordinate, Int>): MutableMap<Coordinate, SudokuSolveData> {
-        val data: MutableMap<Coordinate, SudokuSolveData> = mutableMapOf()
-
-        (1..9).forEach { i ->
-            (1..9).forEach { j ->
-                val coordinate = Coordinate(i, j)
-                data[coordinate] = if (input.containsKey(coordinate)) {
-                    SudokuSolveData(coordinate, input[coordinate]!!, listOf())
-                } else {
-                    SudokuSolveData(coordinate, null, listOf())
-                }
-            }
-        }
-
-        return data
+    private fun buildSolvingData(coordinates: List<Coordinate>, input: Map<Coordinate, Int>): MutableMap<Coordinate, SudokuSolveData> {
+        return coordinates.map { coordinate ->
+            coordinate to SudokuSolveData(coordinate, input[coordinate], listOf())
+        }.toMap(mutableMapOf())
     }
 
     /**
@@ -94,10 +83,10 @@ class SudokuSolver : LogicPuzzleSolver<SudokuInput, SudokuOutput> {
      */
     override fun solve(input: SudokuInput): OneOf<SudokuOutput, List<LogicSolveError>> {
         val groups = toGroups(input.groups)
-        val data = buildSolvingData(input.values)
+        val data = buildSolvingData(input.coordinates, input.values)
 
         if (isSolved(data)) {
-            return toOutput(data)
+            return toOutput(input.coordinates, data)
         }
 
         do {
@@ -107,12 +96,12 @@ class SudokuSolver : LogicPuzzleSolver<SudokuInput, SudokuOutput> {
             }
 
             if (!isValid(groups, data)) {
-                throw Exception("The puzzle is not valid: current state: ${toOutput(data)}")
+                throw Exception("The puzzle is not valid: current state: ${toOutput(input.coordinates, data)}")
             }
         } while (!conclusions.isEmpty())
 
         return if (isSolved(data)) {
-            toOutput(data)
+            toOutput(input.coordinates, data)
         } else {
             OneOf.right(listOf(LogicSolveError("No more conclusions, cannot solve")))
         }
@@ -133,7 +122,7 @@ class SudokuSolver : LogicPuzzleSolver<SudokuInput, SudokuOutput> {
     private fun isValid(groups: Set<SudokuGroup>, data: MutableMap<Coordinate, SudokuSolveData>): Boolean {
         return groups.all { group ->
             val groupData = group(data)
-            (1..9).all {i ->
+            (1..9).all { i ->
                 groupData.filter { it.hasValue() }.count { it.value == i } <= 1
             }
         }
@@ -142,12 +131,12 @@ class SudokuSolver : LogicPuzzleSolver<SudokuInput, SudokuOutput> {
     /**
      * Generates the output given solving data
      */
-    private fun toOutput(data: MutableMap<Coordinate, SudokuSolveData>): OneOf<SudokuOutput, List<LogicSolveError>> {
+    private fun toOutput(coordinates: List<Coordinate>, data: MutableMap<Coordinate, SudokuSolveData>): OneOf<SudokuOutput, List<LogicSolveError>> {
         val valueMap = data
                 .filterValues { it.value != null }
                 .mapValues {
                     it.value.value!!
                 }
-        return OneOf.left(SudokuOutput(valueMap))
+        return OneOf.left(SudokuOutput(coordinates, valueMap))
     }
 }

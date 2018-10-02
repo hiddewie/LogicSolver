@@ -46,20 +46,28 @@ fun hyperBlock(i: Int): List<Coordinate> {
     })
 }
 
-fun readValueMapFromString(s: String): Map<Coordinate, Int> {
+val sudokuCoordinates = sudokuRange.flatMap { i ->
+    sudokuRange.map { j ->
+        Coordinate(i, j)
+    }
+}
+
+fun readSudokuValueMapFromString(s: String): Map<Coordinate, Int> {
+    return readValueMapFromString(s, sudokuCoordinates)
+}
+
+fun readValueMapFromString(s: String, coordinates: List<Coordinate>): Map<Coordinate, Int> {
     val split = s.split(Pattern.compile("\\s+")).filter { it.isNotEmpty() }
-    if (split.size != 81) {
+    if (split.size != coordinates.size) {
         throw Exception("Input size should be 81 non-whitespace strings")
     }
 
-    return sudokuRange.flatMap { i ->
-        sudokuRange.flatMap { j ->
-            val c = split[9 * (i - 1) + (j - 1)]
-            if (c.length == 1 && c.toIntOrNull() != null && c.toInt() >= 1 && c.toInt() <= 9) {
-                listOf(Coordinate(i, j) to c.toInt())
-            } else {
-                listOf()
-            }
+    return split.zip(coordinates).flatMap { pair ->
+        val c = pair.first
+        if (c.length == 1 && c.toIntOrNull() != null && c.toInt() >= 1 && c.toInt() <= 9) {
+            listOf(pair.second to c.toInt())
+        } else {
+            listOf()
         }
     }.toMap()
 }
@@ -68,28 +76,48 @@ val sudokuGroups = sudokuRange.flatMap {
     listOf(row(it), column(it), block(it))
 }
 
-class Sudoku(values: Map<Coordinate, Int>) : SudokuInput(values, sudokuGroups) {
+class Sudoku(values: Map<Coordinate, Int>) : SudokuInput(values, sudokuGroups, sudokuCoordinates) {
     companion object {
         fun readFromString(s: String): Sudoku {
-            return Sudoku(readValueMapFromString(s))
+            return Sudoku(readSudokuValueMapFromString(s))
         }
     }
 }
 
-class SudokuHyper(values: Map<Coordinate, Int>) : SudokuInput(values, sudokuGroups + (1..4).map { hyperBlock(it) }) {
+class SudokuHyper(values: Map<Coordinate, Int>) : SudokuInput(values, sudokuGroups + (1..4).map { hyperBlock(it) }, sudokuCoordinates) {
     companion object {
         fun readFromString(s: String): SudokuHyper {
-            return SudokuHyper(readValueMapFromString(s))
+            return SudokuHyper(readSudokuValueMapFromString(s))
         }
     }
 }
 
-class SudokuX(values: Map<Coordinate, Int>) : SudokuInput(values, sudokuGroups + listOf(diagonalBT(), diagonalTB())) {
+class SudokuX(values: Map<Coordinate, Int>) : SudokuInput(values, sudokuGroups + listOf(diagonalBT(), diagonalTB()), sudokuCoordinates) {
     companion object {
         fun readFromString(s: String): SudokuX {
-            return SudokuX(readValueMapFromString(s))
+            return SudokuX(readSudokuValueMapFromString(s))
         }
     }
 }
 
-open class SudokuInput(val values: Map<Coordinate, Int>, val groups: List<List<Coordinate>>)
+val doubleSudokuRange = (1..15)
+
+val doubleSudokuCoordinates = doubleSudokuRange.flatMap { i ->
+    sudokuRange.map { j ->
+        Coordinate(i, j)
+    }
+}
+
+val doubleSudokuGroups = doubleSudokuRange.map { row(it) } +
+        sudokuRange.flatMap { i -> listOf(column(i), coordinates({ it + 6 }, { i })) } +
+        doubleSudokuRange.map { block(it) }
+
+class SudokuDouble(values: Map<Coordinate, Int>) : SudokuInput(values, doubleSudokuGroups, doubleSudokuCoordinates) {
+    companion object {
+        fun readFromString(s: String): SudokuDouble {
+            return SudokuDouble(readValueMapFromString(s, doubleSudokuCoordinates))
+        }
+    }
+}
+
+open class SudokuInput(val values: Map<Coordinate, Int>, val groups: List<List<Coordinate>>, val coordinates: List<Coordinate>)

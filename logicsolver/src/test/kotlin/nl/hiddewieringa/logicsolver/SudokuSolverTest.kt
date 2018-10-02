@@ -3,7 +3,7 @@ package nl.hiddewieringa.logicsolver
 import org.junit.Test
 import kotlin.test.assertEquals
 
-class SolverTest {
+class SudokuSolverTest {
 
     @Test
     fun solveDataToString() {
