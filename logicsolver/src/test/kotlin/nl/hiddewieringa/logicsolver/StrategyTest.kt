@@ -122,6 +122,6 @@ class StrategyTest {
                     OneOf.right<Value, NotAllowed>(NotAllowed(Coordinate(it, 1), 2))
             )
         }.toSet()
-        assertEquals(expected, TwoNumbersOnlyInTwoPlaces()(data))
+        assertEquals(expected, TwoNumbersOnlyInTwoPlacesStrategy()(data))
     }
 }

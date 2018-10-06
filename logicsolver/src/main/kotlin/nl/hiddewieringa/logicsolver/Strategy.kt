@@ -138,7 +138,7 @@ class TwoNumbersTakeTwoPlacesStrategy : Strategy<List<SudokuSolveData>, Conclusi
 /**
  * If two numbers are only allowed in exactly two places, they are not allowed in any other places.
  */
-class TwoNumbersOnlyInTwoPlaces : Strategy<List<SudokuSolveData>, Conclusion> {
+class TwoNumbersOnlyInTwoPlacesStrategy : Strategy<List<SudokuSolveData>, Conclusion> {
     override fun invoke(data: List<SudokuSolveData>): Set<Conclusion> {
         val twoAllowed = data.filter {
             // 2 allowed
@@ -160,22 +160,6 @@ class TwoNumbersOnlyInTwoPlaces : Strategy<List<SudokuSolveData>, Conclusion> {
                 }
             }
         }.toSet()
-    }
-
-    private fun twoNumbers(data: List<SudokuSolveData>, a: Int, b: Int): List<Conclusion> {
-        val allowedA = data.asSequence().filter { !it.notAllowed.contains(a) }.map { it.coordinate }.toSet()
-        val allowedB = data.asSequence().filter { !it.notAllowed.contains(b) }.map { it.coordinate }.toSet()
-
-        return if (allowedA.size != 2 || allowedB.size != 2 || allowedA != allowedB) {
-            return listOf()
-        } else {
-            allowedA.map { coordinate -> data.find { it.coordinate == coordinate }!! }
-                    .flatMap {
-                        ((1..9) - it.notAllowed - listOf(a, b)).map { value ->
-                            concludeNotAllowed(it.coordinate, value)
-                        }
-                    }
-        }
     }
 }
 
@@ -252,7 +236,7 @@ class GroupStrategy : Strategy<List<SudokuSolveData>, Conclusion> {
             SingleValueAllowedStrategy(),
             FilledValueRestNotAllowedStrategy(),
             TwoNumbersTakeTwoPlacesStrategy(),
-            TwoNumbersOnlyInTwoPlaces()
+            TwoNumbersOnlyInTwoPlacesStrategy()
     )
 
     /**
