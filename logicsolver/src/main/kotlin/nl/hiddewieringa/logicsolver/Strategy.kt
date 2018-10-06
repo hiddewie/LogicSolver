@@ -135,6 +135,50 @@ class TwoNumbersTakeTwoPlacesStrategy : Strategy<List<SudokuSolveData>, Conclusi
     }
 }
 
+/**
+ * If two numbers are only allowed in exactly two places, they are not allowed in any other places.
+ */
+class TwoNumbersOnlyInTwoPlaces : Strategy<List<SudokuSolveData>, Conclusion> {
+    override fun invoke(data: List<SudokuSolveData>): Set<Conclusion> {
+        val twoAllowed = data.filter {
+            // 2 allowed
+            it.notAllowed.size == 7
+        }
+
+        return twoAllowed.flatMap { a ->
+            twoAllowed.filter { b ->
+                a.coordinate != b.coordinate
+            }.filter { b ->
+                a.notAllowed.toSet() == b.notAllowed.toSet()
+            }.flatMap { b ->
+                val allowed = (1..9).toList() - a.notAllowed
+
+                allowed.flatMap { allowedValue ->
+                    data.filter { !it.notAllowed.contains(allowedValue) }
+                            .filter { it.coordinate != a.coordinate && it.coordinate != b.coordinate }
+                            .map { concludeNotAllowed(it.coordinate, allowedValue) }
+                }
+            }
+        }.toSet()
+    }
+
+    private fun twoNumbers(data: List<SudokuSolveData>, a: Int, b: Int): List<Conclusion> {
+        val allowedA = data.asSequence().filter { !it.notAllowed.contains(a) }.map { it.coordinate }.toSet()
+        val allowedB = data.asSequence().filter { !it.notAllowed.contains(b) }.map { it.coordinate }.toSet()
+
+        return if (allowedA.size != 2 || allowedB.size != 2 || allowedA != allowedB) {
+            return listOf()
+        } else {
+            allowedA.map { coordinate -> data.find { it.coordinate == coordinate }!! }
+                    .flatMap {
+                        ((1..9) - it.notAllowed - listOf(a, b)).map { value ->
+                            concludeNotAllowed(it.coordinate, value)
+                        }
+                    }
+        }
+    }
+}
+
 typealias GroupsWithData = Pair<Set<SudokuGroup>, Map<Coordinate, SudokuSolveData>>
 
 class OverlappingGroupsStrategy : Strategy<GroupsWithData, Conclusion> {
@@ -207,7 +251,8 @@ class GroupStrategy : Strategy<List<SudokuSolveData>, Conclusion> {
             FilledValueNotAllowedInGroupStrategy(),
             SingleValueAllowedStrategy(),
             FilledValueRestNotAllowedStrategy(),
-            TwoNumbersTakeTwoPlacesStrategy()
+            TwoNumbersTakeTwoPlacesStrategy(),
+            TwoNumbersOnlyInTwoPlaces()
     )
 
     /**

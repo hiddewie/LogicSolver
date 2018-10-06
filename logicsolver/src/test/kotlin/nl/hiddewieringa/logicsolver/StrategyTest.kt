@@ -106,4 +106,22 @@ class StrategyTest {
         )
         assertEquals(expected, TwoNumbersTakeTwoPlacesStrategy()(data))
     }
+
+    @Test
+    fun twoNumbersOnlyInTwoPlaces() {
+        val data = listOf(
+                SudokuSolveData(Coordinate(1, 1), null, (3..9).toList()),
+                SudokuSolveData(Coordinate(2, 1), null, (3..9).toList())
+        ) + (3..9).map {
+            SudokuSolveData(Coordinate(it, 1), null, listOf())
+        }
+
+        val expected = (3..9).flatMap {
+            listOf(
+                    OneOf.right<Value, NotAllowed>(NotAllowed(Coordinate(it, 1), 1)),
+                    OneOf.right<Value, NotAllowed>(NotAllowed(Coordinate(it, 1), 2))
+            )
+        }.toSet()
+        assertEquals(expected, TwoNumbersOnlyInTwoPlaces()(data))
+    }
 }
