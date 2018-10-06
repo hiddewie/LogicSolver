@@ -106,6 +106,35 @@ class FilledValueRestNotAllowedStrategy : Strategy<List<SudokuSolveData>, Conclu
     }
 }
 
+/**
+ * If a value is given in a cell, then all other values are not allowed in that cell
+ */
+class TwoNumbersTakeTwoPlacesStrategy : Strategy<List<SudokuSolveData>, Conclusion> {
+    override fun invoke(data: List<SudokuSolveData>): Set<Conclusion> {
+        return (1..9).flatMap { a ->
+            (1..9).flatMap { b ->
+                if (a != b) twoNumbers(data, a, b) else listOf()
+            }
+        }.toSet()
+    }
+
+    private fun twoNumbers(data: List<SudokuSolveData>, a: Int, b: Int): List<Conclusion> {
+        val allowedA = data.asSequence().filter { !it.notAllowed.contains(a) }.map { it.coordinate }.toSet()
+        val allowedB = data.asSequence().filter { !it.notAllowed.contains(b) }.map { it.coordinate }.toSet()
+
+        return if (allowedA.size != 2 || allowedB.size != 2 || allowedA != allowedB) {
+            return listOf()
+        } else {
+            allowedA.map { coordinate -> data.find { it.coordinate == coordinate }!! }
+                    .flatMap {
+                        ((1..9) - it.notAllowed - listOf(a, b)).map { value ->
+                            concludeNotAllowed(it.coordinate, value)
+                        }
+                    }
+        }
+    }
+}
+
 typealias GroupsWithData = Pair<Set<SudokuGroup>, Map<Coordinate, SudokuSolveData>>
 
 class OverlappingGroupsStrategy : Strategy<GroupsWithData, Conclusion> {
@@ -177,7 +206,8 @@ class GroupStrategy : Strategy<List<SudokuSolveData>, Conclusion> {
             MissingValueGroupStrategy(),
             FilledValueNotAllowedInGroupStrategy(),
             SingleValueAllowedStrategy(),
-            FilledValueRestNotAllowedStrategy()
+            FilledValueRestNotAllowedStrategy(),
+            TwoNumbersTakeTwoPlacesStrategy()
     )
 
     /**

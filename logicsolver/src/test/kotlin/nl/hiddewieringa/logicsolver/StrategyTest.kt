@@ -91,4 +91,19 @@ class StrategyTest {
         // Three overlap other way around (conclusions)
         assertEquals(expected, OverlappingGroupsStrategy().overlappingConclusionsForGroups(group3, group1, data))
     }
+
+    @Test
+    fun twoNumbersTakeTwoPlacesStrategyTest() {
+        val data = listOf(
+                SudokuSolveData(Coordinate(1, 1), null, (3..9).toList()),
+                SudokuSolveData(Coordinate(2, 1), null, (4..9).toList())
+        ) + (3..9).map {
+            SudokuSolveData(Coordinate(it, 1), null, listOf(1, 2))
+        }
+
+        val expected = setOf<Conclusion>(
+                OneOf.right(NotAllowed(Coordinate(2, 1), 3))
+        )
+        assertEquals(expected, TwoNumbersTakeTwoPlacesStrategy()(data))
+    }
 }

@@ -7,17 +7,18 @@ data class SudokuOutput(val coordinates: List<Coordinate>, val values: Map<Coord
      * Generates a grid output of the puzzle solution
      */
     override fun toString(): String {
-        return coordinates.fold("") { acc, coordinate ->
-            acc + spacingForCoordinate(coordinate) + characterForValue(values[coordinate])
+        val max = coordinates.max() ?: throw Exception("Cannot determine max coordinate from list")
+
+        return (1..(max.a)).fold("") { acc, i ->
+            acc + (1..(max.b)).fold("") { subAcc, j ->
+                val coordinate = Coordinate(i, j)
+                subAcc + spacingForCoordinate(coordinate) + (if (values.contains(coordinate)) characterForValue(values[coordinate]) else " ")
+            } + "\n"
         }
     }
 
     private fun spacingForCoordinate(coordinate: Coordinate): String {
-        return if (coordinate.a == 1 && coordinate.b == 1) {
-            ""
-        } else {
-            if (coordinate.b == 1) "\n" else " "
-        }
+        return if (coordinate.b == 1) "" else " "
     }
 
     private fun characterForValue(value: Int?): String {

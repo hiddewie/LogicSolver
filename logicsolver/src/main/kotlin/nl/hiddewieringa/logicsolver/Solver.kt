@@ -65,16 +65,14 @@ class SudokuSolver : LogicPuzzleSolver<SudokuInput, SudokuOutput> {
      * Processes the conclusions from each group
      */
     private fun processConclusion(data: MutableMap<Coordinate, SudokuSolveData>, conclusion: Conclusion) {
-        if (conclusion.isLeft()) {
-            val value = conclusion.left()
+        conclusion.match({ value ->
             if (data[value.coordinate]!!.value != null) {
                 throw Exception("Value at ${data[value.coordinate]!!.coordinate} is ${data[value.coordinate]!!.value} but replacing with ${value.value}")
             }
             data[value.coordinate] = SudokuSolveData(value.coordinate, value.value, data[value.coordinate]!!.notAllowed)
-        } else {
-            val notAllowed = conclusion.right()
+        }, { notAllowed ->
             data[notAllowed.coordinate] = SudokuSolveData(notAllowed.coordinate, data[notAllowed.coordinate]!!.value, data[notAllowed.coordinate]!!.notAllowed + listOf(notAllowed.value))
-        }
+        })
     }
 
     /**
@@ -100,6 +98,7 @@ class SudokuSolver : LogicPuzzleSolver<SudokuInput, SudokuOutput> {
             }
         } while (!conclusions.isEmpty())
 
+
         return if (isSolved(data)) {
             toOutput(input.coordinates, data)
         } else {
@@ -123,7 +122,7 @@ class SudokuSolver : LogicPuzzleSolver<SudokuInput, SudokuOutput> {
         return groups.all { group ->
             val groupData = group(data)
             (1..9).all { i ->
-                groupData.filter { it.hasValue() }.count { it.value == i } <= 1
+                groupData.asSequence().filter { it.hasValue() }.count { it.value == i } <= 1
             }
         }
     }

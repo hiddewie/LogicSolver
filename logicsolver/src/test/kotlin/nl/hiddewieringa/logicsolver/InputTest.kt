@@ -1,8 +1,8 @@
 package nl.hiddewieringa.logicsolver
 
-import nl.hiddewieringa.logicsolver.*
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class InputTest {
 
@@ -103,5 +103,23 @@ class InputTest {
                 Coordinate(9, 1)
         )
         assertEquals(expected2, diagonalTB())
+    }
+
+    @Test
+    fun testTranslate() {
+        val data = listOf(Coordinate(10, 11))
+        val expectedX = listOf(Coordinate(20, 11))
+        val expectedY = listOf(Coordinate(10, 21))
+        val expectedXY = listOf(Coordinate(20, 21))
+        assertEquals(expectedX, data.translateX(10))
+        assertEquals(expectedY, data.translateY(10))
+        assertEquals(expectedXY, data.translate(10, 10))
+    }
+
+    @Test
+    fun testCoordinateCompare() {
+        assertTrue { Coordinate(1, 1) == Coordinate(1, 1) }
+        assertTrue { Coordinate(2, 1) > Coordinate(1, 1) }
+        assertTrue { Coordinate(2, 1) > Coordinate(1, 2) }
     }
 }
