@@ -81,14 +81,14 @@ fun readValueMapFromString(s: String, coordinates: List<Coordinate>): Map<Coordi
         throw Exception("Input size (${split.size}) should be ${coordinates.size} non-whitespace strings")
     }
 
-    return split.zip(coordinates.sorted()).flatMap { pair ->
-        val c = pair.first
-        if (c.length == 1 && c.toIntOrNull() != null && c.toInt() >= 1 && c.toInt() <= 9) {
-            listOf(pair.second to c.toInt())
-        } else {
-            listOf()
-        }
-    }.toMap()
+    return split.zip(coordinates.sorted())
+            .filter { pair ->
+                val c = pair.first
+                c.length == 1 && c.toIntOrNull() != null && c.toInt() >= 1 && c.toInt() <= 9
+            }
+            .flatMap { pair ->
+                listOf(pair.second to pair.first.toInt())
+            }.toMap()
 }
 
 val sudokuGroups = sudokuRange.flatMap {
