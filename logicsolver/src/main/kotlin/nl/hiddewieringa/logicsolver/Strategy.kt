@@ -39,6 +39,20 @@ typealias Group<M, T> = (M) -> List<T>
 
 typealias SudokuGroup = Group<Map<Coordinate, SudokuSolveData>, SudokuSolveData>
 
+typealias GroupsWithData = Pair<Set<SudokuGroup>, Map<Coordinate, SudokuSolveData>>
+
+fun List<SudokuSolveData>.coordinates(): List<Coordinate> {
+    return map { it.coordinate }
+}
+
+fun <T> List<Coordinate>.toValues(data: Map<Coordinate, T>): List<T> {
+    return map { data[it]!! }
+}
+
+fun List<SudokuSolveData>.ignoreCoordinates(coordinates: Set<Coordinate>, data: Map<Coordinate, SudokuSolveData>): List<SudokuSolveData> {
+    return (coordinates() - coordinates).toValues(data)
+}
+
 /**
  * Finds the missing value if all but one value is filled in the group
  */
@@ -112,26 +126,35 @@ class FilledValueRestNotAllowedStrategy : Strategy<List<SudokuSolveData>, Conclu
 class TwoNumbersTakeTwoPlacesStrategy : Strategy<List<SudokuSolveData>, Conclusion> {
     override fun invoke(data: List<SudokuSolveData>): Set<Conclusion> {
         return (1..9).flatMap { a ->
-            (1..9).flatMap { b ->
-                if (a != b) twoNumbers(data, a, b) else listOf()
+            (1..9).filter { b ->
+                a != b
+            }.flatMap { b ->
+                twoNumbers(data, a, b)
             }
         }.toSet()
     }
 
     private fun twoNumbers(data: List<SudokuSolveData>, a: Int, b: Int): List<Conclusion> {
-        val allowedA = data.asSequence().filter { !it.notAllowed.contains(a) }.map { it.coordinate }.toSet()
-        val allowedB = data.asSequence().filter { !it.notAllowed.contains(b) }.map { it.coordinate }.toSet()
+        val allowedA = data.whereValueIsAllowed(a)
+        val allowedB = data.whereValueIsAllowed(b)
 
-        return if (allowedA.size != 2 || allowedB.size != 2 || allowedA != allowedB) {
+        if (allowedA.size != 2 || allowedB.size != 2 || allowedA != allowedB) {
             return listOf()
-        } else {
-            allowedA.map { coordinate -> data.find { it.coordinate == coordinate }!! }
-                    .flatMap {
-                        ((1..9) - it.notAllowed - listOf(a, b)).map { value ->
-                            concludeNotAllowed(it.coordinate, value)
-                        }
-                    }
         }
+
+        return allowedA.findByCoordinate(data)
+                .flatMap { solveData ->
+                    ((1..9) - solveData.notAllowed - listOf(a, b))
+                            .concludeNotAllowed({ solveData.coordinate }, { it })
+                }
+    }
+
+    private fun List<SudokuSolveData>.whereValueIsAllowed(value: Int): Set<Coordinate> {
+        return filter { !it.notAllowed.contains(value) }.coordinates().toSet()
+    }
+
+    private fun Set<Coordinate>.findByCoordinate(data: List<SudokuSolveData>): List<SudokuSolveData> {
+        return map { coordinate -> data.find { it.coordinate == coordinate }!! }
     }
 }
 
@@ -151,19 +174,21 @@ class TwoNumbersOnlyInTwoPlacesStrategy : Strategy<List<SudokuSolveData>, Conclu
             }.filter { b ->
                 a.notAllowed.toSet() == b.notAllowed.toSet()
             }.flatMap { b ->
-                val allowed = (1..9).toList() - a.notAllowed
-
-                allowed.flatMap { allowedValue ->
-                    data.filter { !it.notAllowed.contains(allowedValue) }
-                            .filter { it.coordinate != a.coordinate && it.coordinate != b.coordinate }
-                            .map { concludeNotAllowed(it.coordinate, allowedValue) }
-                }
+                conclusionsForTwoPlaces(data, a, b)
             }
         }.toSet()
     }
-}
 
-typealias GroupsWithData = Pair<Set<SudokuGroup>, Map<Coordinate, SudokuSolveData>>
+    private fun conclusionsForTwoPlaces(data: List<SudokuSolveData>, a: SudokuSolveData, b: SudokuSolveData): List<Conclusion> {
+        val allowed = (1..9).toList() - a.notAllowed
+
+        return allowed.flatMap { allowedValue ->
+            data.filter { !it.notAllowed.contains(allowedValue) }
+                    .filter { it.coordinate != a.coordinate && it.coordinate != b.coordinate }
+                    .concludeNotAllowed({ it.coordinate }, { allowedValue })
+        }
+    }
+}
 
 class OverlappingGroupsStrategy : Strategy<GroupsWithData, Conclusion> {
 
@@ -177,18 +202,6 @@ class OverlappingGroupsStrategy : Strategy<GroupsWithData, Conclusion> {
                 overlappingConclusionsForGroups(group1, group2, data)
             }
         }.toSet()
-    }
-
-    private fun List<SudokuSolveData>.coordinates(): List<Coordinate> {
-        return map { it.coordinate }
-    }
-
-    private fun <T> List<Coordinate>.toValues(data: Map<Coordinate, T>): List<T> {
-        return map { data[it]!! }
-    }
-
-    private fun List<SudokuSolveData>.ignoreCoordinates(coordinates: Set<Coordinate>, data: Map<Coordinate, SudokuSolveData>): List<SudokuSolveData> {
-        return (coordinates() - coordinates).toValues(data)
     }
 
     fun overlappingConclusionsForGroups(group1: List<SudokuSolveData>, group2: List<SudokuSolveData>,
@@ -212,9 +225,9 @@ class OverlappingGroupsStrategy : Strategy<GroupsWithData, Conclusion> {
 
     private fun overlappingConclusionsForGroupsAndValue(group1Other: List<SudokuSolveData>, group2Other: List<SudokuSolveData>,
                                                         value: Int): List<Conclusion> {
-        return if (group1Other.all { it.notAllowed.contains(value) }) {
+        return if (group1Other.all { it.isNotAllowed(value) }) {
             group2Other.filter {
-                it.isEmpty() && !it.notAllowed.contains(value)
+                it.isEmpty() && it.isAllowed(value)
             }.concludeNotAllowed({ it.coordinate }, { value })
         } else {
             listOf()

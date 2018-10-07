@@ -18,6 +18,14 @@ class SudokuSolveData(val coordinate: Coordinate, val value: Int?, val notAllowe
         return !hasValue()
     }
 
+    fun isNotAllowed(value: Int): Boolean {
+        return !isAllowed(value)
+    }
+
+    fun isAllowed(value: Int): Boolean {
+        return !notAllowed.contains(value)
+    }
+
     override fun toString(): String {
         return "SSD($coordinate, $value, $notAllowed)"
     }
