@@ -2,6 +2,7 @@ package nl.hiddewieringa.logicsolver
 
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class InputTest {
@@ -121,5 +122,16 @@ class InputTest {
         assertTrue { Coordinate(1, 1) == Coordinate(1, 1) }
         assertTrue { Coordinate(2, 1) > Coordinate(1, 1) }
         assertTrue { Coordinate(2, 1) > Coordinate(1, 2) }
+    }
+
+    @Test
+    fun testValidSudokuValue() {
+        assertTrue { validSudokuValue("1") }
+        assertTrue { validSudokuValue("9") }
+        assertFalse { validSudokuValue("0") }
+        assertFalse { validSudokuValue("10") }
+        assertFalse { validSudokuValue("jknsd") }
+        assertFalse { validSudokuValue("x") }
+        assertFalse { validSudokuValue("") }
     }
 }

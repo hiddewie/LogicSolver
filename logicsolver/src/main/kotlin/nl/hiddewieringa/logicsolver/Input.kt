@@ -77,6 +77,10 @@ fun readSudokuValueMapFromString(s: String): Map<Coordinate, Int> {
     return readValueMapFromString(s, sudokuCoordinates)
 }
 
+fun validSudokuValue(value: String): Boolean {
+    return value.length == 1 && value.toIntOrNull() != null && value.toInt() >= 1 && value.toInt() <= 9
+}
+
 fun readValueMapFromString(s: String, coordinates: List<Coordinate>): Map<Coordinate, Int> {
     val split = s.split(Pattern.compile("\\s+")).filter { it.isNotEmpty() }
     if (split.size != coordinates.size) {
@@ -84,13 +88,9 @@ fun readValueMapFromString(s: String, coordinates: List<Coordinate>): Map<Coordi
     }
 
     return split.zip(coordinates.sorted())
-            .filter { pair ->
-                val c = pair.first
-                c.length == 1 && c.toIntOrNull() != null && c.toInt() >= 1 && c.toInt() <= 9
-            }
-            .flatMap { pair ->
-                listOf(pair.second to pair.first.toInt())
-            }.toMap()
+            .filter { validSudokuValue(it.first) }
+            .map { it.second to it.first.toInt() }
+            .toMap()
 }
 
 val sudokuGroups = sudokuRange.flatMap {
