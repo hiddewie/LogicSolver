@@ -13,35 +13,37 @@ data class Coordinate(val a: Int, val b: Int) : Comparable<Coordinate> {
 
 val sudokuRange = (1..9)
 
-fun coordinates(x: (i: Int) -> Int, y: (I: Int) -> Int): List<Coordinate> {
+fun coordinates(x: (i: Int) -> Int, y: (I: Int) -> Int): Set<Coordinate> {
     return sudokuRange.map {
         Coordinate(x(it), y(it))
-    }
+    }.toSet()
 }
 
-fun List<Coordinate>.translate(dx: Int, dy: Int): List<Coordinate> {
+val sudokuPuzzleValues = (1..9).toSet()
+
+fun Collection<Coordinate>.translate(dx: Int, dy: Int): Set<Coordinate> {
     return map {
         Coordinate(it.a + dx, it.b + dy)
-    }
+    }.toSet()
 }
 
-fun List<Coordinate>.translateX(dx: Int): List<Coordinate> {
+fun Collection<Coordinate>.translateX(dx: Int): Set<Coordinate> {
     return translate(dx, 0)
 }
 
-fun List<Coordinate>.translateY(dy: Int): List<Coordinate> {
+fun Collection<Coordinate>.translateY(dy: Int): Set<Coordinate> {
     return translate(0, dy)
 }
 
-fun row(i: Int): List<Coordinate> {
+fun row(i: Int): Set<Coordinate> {
     return coordinates({ i }, { it })
 }
 
-fun column(i: Int): List<Coordinate> {
+fun column(i: Int): Set<Coordinate> {
     return coordinates({ it }, { i })
 }
 
-fun block(i: Int): List<Coordinate> {
+fun block(i: Int): Set<Coordinate> {
     return coordinates({
         1 + 3 * ((i - 1) / 3) + (it - 1) / 3
     }, {
@@ -49,15 +51,15 @@ fun block(i: Int): List<Coordinate> {
     })
 }
 
-fun diagonalTB(): List<Coordinate> {
+fun diagonalTB(): Set<Coordinate> {
     return coordinates({ it }, { 10 - it })
 }
 
-fun diagonalBT(): List<Coordinate> {
+fun diagonalBT(): Set<Coordinate> {
     return coordinates({ it }, { it })
 }
 
-fun hyperBlock(i: Int): List<Coordinate> {
+fun hyperBlock(i: Int): Set<Coordinate> {
     return coordinates({
         2 + 4 * ((i - 1) / 2) + (it - 1) / 3
     }, {
@@ -95,7 +97,7 @@ val sudokuGroups = sudokuRange.flatMap {
     listOf(row(it), column(it), block(it))
 }
 
-class Sudoku(values: Map<Coordinate, Int>) : SudokuInput(values, sudokuGroups, sudokuCoordinates) {
+class Sudoku(values: Map<Coordinate, Int>) : SudokuInput(values, sudokuGroups, sudokuCoordinates, sudokuPuzzleValues) {
     companion object {
         fun readFromString(s: String): Sudoku {
             return Sudoku(readSudokuValueMapFromString(s))
@@ -105,7 +107,7 @@ class Sudoku(values: Map<Coordinate, Int>) : SudokuInput(values, sudokuGroups, s
 
 val hyperGroups = sudokuGroups + (1..4).map { hyperBlock(it) }
 
-class SudokuHyper(values: Map<Coordinate, Int>) : SudokuInput(values, hyperGroups, sudokuCoordinates) {
+class SudokuHyper(values: Map<Coordinate, Int>) : SudokuInput(values, hyperGroups, sudokuCoordinates, sudokuPuzzleValues) {
     companion object {
         fun readFromString(s: String): SudokuHyper {
             return SudokuHyper(readSudokuValueMapFromString(s))
@@ -113,7 +115,7 @@ class SudokuHyper(values: Map<Coordinate, Int>) : SudokuInput(values, hyperGroup
     }
 }
 
-class SudokuX(values: Map<Coordinate, Int>) : SudokuInput(values, sudokuGroups + listOf(diagonalBT(), diagonalTB()), sudokuCoordinates) {
+class SudokuX(values: Map<Coordinate, Int>) : SudokuInput(values, sudokuGroups + listOf(diagonalBT(), diagonalTB()), sudokuCoordinates, sudokuPuzzleValues) {
     companion object {
         fun readFromString(s: String): SudokuX {
             return SudokuX(readSudokuValueMapFromString(s))
@@ -133,7 +135,7 @@ val doubleSudokuGroups = doubleSudokuRange.map { row(it) } +
         sudokuRange.flatMap { i -> listOf(column(i), column(i).translateX(6)) } +
         doubleSudokuRange.map { block(it) }
 
-class SudokuDouble(values: Map<Coordinate, Int>) : SudokuInput(values, doubleSudokuGroups, doubleSudokuCoordinates) {
+class SudokuDouble(values: Map<Coordinate, Int>) : SudokuInput(values, doubleSudokuGroups, doubleSudokuCoordinates, sudokuPuzzleValues) {
     companion object {
         fun readFromString(s: String): SudokuDouble {
             return SudokuDouble(readValueMapFromString(s, doubleSudokuCoordinates))
@@ -155,7 +157,7 @@ val samuraiGroups = (sudokuGroups +
         sudokuGroups.map { it.translateY(12) }
         ).toSet().toList()
 
-class SudokuSamurai(values: Map<Coordinate, Int>) : SudokuInput(values, samuraiGroups, samuraiCoordinates) {
+class SudokuSamurai(values: Map<Coordinate, Int>) : SudokuInput(values, samuraiGroups, samuraiCoordinates, sudokuPuzzleValues) {
     companion object {
         fun readFromString(s: String): SudokuSamurai {
             return SudokuSamurai(readValueMapFromString(s, samuraiCoordinates))
@@ -163,4 +165,4 @@ class SudokuSamurai(values: Map<Coordinate, Int>) : SudokuInput(values, samuraiG
     }
 }
 
-open class SudokuInput(val values: Map<Coordinate, Int>, val groups: List<List<Coordinate>>, val coordinates: List<Coordinate>)
+open class SudokuInput(val values: Map<Coordinate, Int>, val groups: List<Set<Coordinate>>, val coordinates: List<Coordinate>, val puzzleValues: Set<Int>)

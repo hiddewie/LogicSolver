@@ -8,7 +8,7 @@ class InputTest {
 
     @Test
     fun testRow() {
-        val expected = listOf(
+        val expected = setOf(
                 Coordinate(1, 1),
                 Coordinate(1, 2),
                 Coordinate(1, 3),
@@ -24,7 +24,7 @@ class InputTest {
 
     @Test
     fun testCol() {
-        val expected = listOf(
+        val expected = setOf(
                 Coordinate(1, 1),
                 Coordinate(2, 1),
                 Coordinate(3, 1),
@@ -40,7 +40,7 @@ class InputTest {
 
     @Test
     fun testBlock() {
-        val expected = listOf(
+        val expected = setOf(
                 Coordinate(1, 1),
                 Coordinate(1, 2),
                 Coordinate(1, 3),
@@ -56,7 +56,7 @@ class InputTest {
 
     @Test
     fun testHyperBlock() {
-        val expected = listOf(
+        val expected = setOf(
                 Coordinate(6, 6),
                 Coordinate(6, 7),
                 Coordinate(6, 8),
@@ -78,7 +78,7 @@ class InputTest {
 
     @Test
     fun testDiagonal() {
-        val expected = listOf(
+        val expected = setOf(
                 Coordinate(1, 1),
                 Coordinate(2, 2),
                 Coordinate(3, 3),
@@ -91,7 +91,7 @@ class InputTest {
         )
         assertEquals(expected, diagonalBT())
 
-        val expected2 = listOf(
+        val expected2 = setOf(
                 Coordinate(1, 9),
                 Coordinate(2, 8),
                 Coordinate(3, 7),
@@ -107,10 +107,10 @@ class InputTest {
 
     @Test
     fun testTranslate() {
-        val data = listOf(Coordinate(10, 11))
-        val expectedX = listOf(Coordinate(20, 11))
-        val expectedY = listOf(Coordinate(10, 21))
-        val expectedXY = listOf(Coordinate(20, 21))
+        val data = setOf(Coordinate(10, 11))
+        val expectedX = setOf(Coordinate(20, 11))
+        val expectedY = setOf(Coordinate(10, 21))
+        val expectedXY = setOf(Coordinate(20, 21))
         assertEquals(expectedX, data.translateX(10))
         assertEquals(expectedY, data.translateY(10))
         assertEquals(expectedXY, data.translate(10, 10))

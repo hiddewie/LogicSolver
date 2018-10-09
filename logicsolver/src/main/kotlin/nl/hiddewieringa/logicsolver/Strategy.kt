@@ -9,7 +9,7 @@ fun concludeNotAllowed(coordinate: Coordinate, value: Int): Conclusion {
     return OneOf.right(NotAllowed(coordinate, value))
 }
 
-fun <T> List<T>.concludeNotAllowed(coordinate: (T) -> Coordinate, value: (T) -> Int): List<Conclusion> {
+fun <T> Collection<T>.concludeNotAllowed(coordinate: (T) -> Coordinate, value: (T) -> Int): List<Conclusion> {
     return map { concludeNotAllowed(coordinate(it), value(it)) }
 }
 
@@ -35,13 +35,15 @@ data class NotAllowed(val coordinate: Coordinate, val value: Int)
 /**
  * A group transforms the working puzzle data into a working list of data
  */
-typealias Group<M, T> = (M) -> List<T>
+typealias Group<M, T> = (M) -> Set<T>
 
 typealias SudokuGroup = Group<Map<Coordinate, SudokuSolveData>, SudokuSolveData>
 
-typealias GroupsWithData = Pair<Set<SudokuGroup>, Map<Coordinate, SudokuSolveData>>
+typealias GroupsWithData = Triple<Set<SudokuGroup>, Map<Coordinate, SudokuSolveData>, Set<Int>>
 
-fun List<SudokuSolveData>.coordinates(): List<Coordinate> {
+typealias DataWithValues = Pair<Set<SudokuSolveData>, Set<Int>>
+
+fun Collection<SudokuSolveData>.coordinates(): List<Coordinate> {
     return map { it.coordinate }
 }
 
@@ -49,22 +51,24 @@ fun <T> List<Coordinate>.toValues(data: Map<Coordinate, T>): List<T> {
     return map { data[it]!! }
 }
 
-fun List<SudokuSolveData>.ignoreCoordinates(coordinates: Set<Coordinate>, data: Map<Coordinate, SudokuSolveData>): List<SudokuSolveData> {
+fun Collection<SudokuSolveData>.ignoreCoordinates(coordinates: Set<Coordinate>, data: Map<Coordinate, SudokuSolveData>): List<SudokuSolveData> {
     return (coordinates() - coordinates).toValues(data)
 }
 
 /**
  * Finds the missing value if all but one value is filled in the group
  */
-class MissingValueGroupStrategy : Strategy<List<SudokuSolveData>, Conclusion> {
-    override fun invoke(data: List<SudokuSolveData>): Set<Conclusion> {
-        val m = (1..9).map { i ->
+class MissingValueGroupStrategy : Strategy<DataWithValues, Conclusion> {
+    override fun invoke(dataWithValues: DataWithValues): Set<Conclusion> {
+        val (data, values) = dataWithValues
+
+        val m = values.map { i ->
             i to data.find { it.value == i }
         }.toMap()
 
-        return if ((1..9).filter { m[it] == null }.size == 1) {
+        return if (values.filter { m[it] == null }.size == 1) {
             val coordinate = data.find { it.value == null }!!.coordinate
-            val value = (1..9).find { m[it] == null }!!
+            val value = values.find { m[it] == null }!!
             setOf(concludeValue(coordinate, value))
         } else {
             setOf()
@@ -75,8 +79,10 @@ class MissingValueGroupStrategy : Strategy<List<SudokuSolveData>, Conclusion> {
 /**
  * If a value is given in a cell, than all other cells in the group are not allowed to contain that value
  */
-class FilledValueNotAllowedInGroupStrategy : Strategy<List<SudokuSolveData>, Conclusion> {
-    override fun invoke(data: List<SudokuSolveData>): Set<Conclusion> {
+class FilledValueNotAllowedInGroupStrategy : Strategy<DataWithValues, Conclusion> {
+    override fun invoke(dataWithValues: DataWithValues): Set<Conclusion> {
+        val (data, _) = dataWithValues
+
         return data.filter(SudokuSolveData::hasValue)
                 .flatMap { hasValue ->
                     data.filter {
@@ -89,11 +95,13 @@ class FilledValueNotAllowedInGroupStrategy : Strategy<List<SudokuSolveData>, Con
 /**
  * If all but one value is not allowed in a cell, then that value must be true
  */
-class SingleValueAllowedStrategy : Strategy<List<SudokuSolveData>, Conclusion> {
-    override fun invoke(data: List<SudokuSolveData>): Set<Conclusion> {
+class SingleValueAllowedStrategy : Strategy<DataWithValues, Conclusion> {
+    override fun invoke(dataWithValues: DataWithValues): Set<Conclusion> {
+        val (data, values) = dataWithValues
+
         return data.filter(SudokuSolveData::isEmpty)
                 .flatMap { solveData ->
-                    val m = (1..9).map { i ->
+                    val m = values.map { i ->
                         i to solveData.notAllowed.contains(i)
                     }.toMap()
 
@@ -110,11 +118,13 @@ class SingleValueAllowedStrategy : Strategy<List<SudokuSolveData>, Conclusion> {
 /**
  * If a value is given in a cell, then all other values are not allowed in that cell
  */
-class FilledValueRestNotAllowedStrategy : Strategy<List<SudokuSolveData>, Conclusion> {
-    override fun invoke(data: List<SudokuSolveData>): Set<Conclusion> {
+class FilledValueRestNotAllowedStrategy : Strategy<DataWithValues, Conclusion> {
+    override fun invoke(dataWithValues: DataWithValues): Set<Conclusion> {
+        val (data, values) = dataWithValues
+
         return data.filter(SudokuSolveData::hasValue)
                 .flatMap { hasValue ->
-                    val missingNotAllowed = (1..9) - listOf(hasValue.value!!) - hasValue.notAllowed
+                    val missingNotAllowed = values - setOf(hasValue.value!!) - hasValue.notAllowed
                     missingNotAllowed.concludeNotAllowed({ hasValue.coordinate }, { it })
                 }.toSet()
     }
@@ -123,18 +133,20 @@ class FilledValueRestNotAllowedStrategy : Strategy<List<SudokuSolveData>, Conclu
 /**
  * If a value is given in a cell, then all other values are not allowed in that cell
  */
-class TwoNumbersTakeTwoPlacesStrategy : Strategy<List<SudokuSolveData>, Conclusion> {
-    override fun invoke(data: List<SudokuSolveData>): Set<Conclusion> {
-        return (1..9).flatMap { a ->
-            (1..9).filter { b ->
+class TwoNumbersTakeTwoPlacesStrategy : Strategy<DataWithValues, Conclusion> {
+    override fun invoke(dataWithValues: DataWithValues): Set<Conclusion> {
+        val (data, values) = dataWithValues
+
+        return values.flatMap { a ->
+            values.filter { b ->
                 a != b
             }.flatMap { b ->
-                twoNumbers(data, a, b)
+                twoNumbers(data, a, b, values)
             }
         }.toSet()
     }
 
-    private fun twoNumbers(data: List<SudokuSolveData>, a: Int, b: Int): List<Conclusion> {
+    private fun twoNumbers(data: Set<SudokuSolveData>, a: Int, b: Int, values: Set<Int>): List<Conclusion> {
         val allowedA = data.whereValueIsAllowed(a)
         val allowedB = data.whereValueIsAllowed(b)
 
@@ -144,16 +156,16 @@ class TwoNumbersTakeTwoPlacesStrategy : Strategy<List<SudokuSolveData>, Conclusi
 
         return allowedA.findByCoordinate(data)
                 .flatMap { solveData ->
-                    ((1..9) - solveData.notAllowed - listOf(a, b))
+                    (values - solveData.notAllowed - listOf(a, b))
                             .concludeNotAllowed({ solveData.coordinate }, { it })
                 }
     }
 
-    private fun List<SudokuSolveData>.whereValueIsAllowed(value: Int): Set<Coordinate> {
+    private fun Collection<SudokuSolveData>.whereValueIsAllowed(value: Int): Set<Coordinate> {
         return filter { !it.notAllowed.contains(value) }.coordinates().toSet()
     }
 
-    private fun Set<Coordinate>.findByCoordinate(data: List<SudokuSolveData>): List<SudokuSolveData> {
+    private fun Set<Coordinate>.findByCoordinate(data: Collection<SudokuSolveData>): List<SudokuSolveData> {
         return map { coordinate -> data.find { it.coordinate == coordinate }!! }
     }
 }
@@ -161,11 +173,12 @@ class TwoNumbersTakeTwoPlacesStrategy : Strategy<List<SudokuSolveData>, Conclusi
 /**
  * If two numbers are only allowed in exactly two places, they are not allowed in any other places.
  */
-class TwoNumbersOnlyInTwoPlacesStrategy : Strategy<List<SudokuSolveData>, Conclusion> {
-    override fun invoke(data: List<SudokuSolveData>): Set<Conclusion> {
+class TwoNumbersOnlyInTwoPlacesStrategy : Strategy<DataWithValues, Conclusion> {
+    override fun invoke(dataWithValues: DataWithValues): Set<Conclusion> {
+        val (data, values) = dataWithValues
+
         val twoAllowed = data.filter {
-            // 2 allowed
-            it.notAllowed.size == 7
+            it.notAllowed.size == values.size - 2
         }
 
         return twoAllowed.flatMap { a ->
@@ -174,13 +187,14 @@ class TwoNumbersOnlyInTwoPlacesStrategy : Strategy<List<SudokuSolveData>, Conclu
             }.filter { b ->
                 a.notAllowed.toSet() == b.notAllowed.toSet()
             }.flatMap { b ->
-                conclusionsForTwoPlaces(data, a, b)
+                conclusionsForTwoPlaces(data, a, b, values)
             }
         }.toSet()
     }
 
-    private fun conclusionsForTwoPlaces(data: List<SudokuSolveData>, a: SudokuSolveData, b: SudokuSolveData): List<Conclusion> {
-        val allowed = (1..9).toList() - a.notAllowed
+    private fun conclusionsForTwoPlaces(data: Set<SudokuSolveData>, a: SudokuSolveData, b: SudokuSolveData,
+                                        values: Set<Int>): List<Conclusion> {
+        val allowed = values.toList() - a.notAllowed
 
         return allowed.flatMap { allowedValue ->
             data.filter { !it.notAllowed.contains(allowedValue) }
@@ -192,20 +206,19 @@ class TwoNumbersOnlyInTwoPlacesStrategy : Strategy<List<SudokuSolveData>, Conclu
 
 class OverlappingGroupsStrategy : Strategy<GroupsWithData, Conclusion> {
 
-    override fun invoke(pair: GroupsWithData): Set<Conclusion> {
-        val groups = pair.first
-        val data = pair.second
+    override fun invoke(groupsWithData: GroupsWithData): Set<Conclusion> {
+        val (groups, data, values) = groupsWithData
 
         val evaluatedGroups = groups.map { it(data) }
         return evaluatedGroups.flatMap { group1 ->
             (evaluatedGroups - setOf(group1)).flatMap { group2 ->
-                overlappingConclusionsForGroups(group1, group2, data)
+                overlappingConclusionsForGroups(group1, group2, data, values)
             }
         }.toSet()
     }
 
-    fun overlappingConclusionsForGroups(group1: List<SudokuSolveData>, group2: List<SudokuSolveData>,
-                                        data: Map<Coordinate, SudokuSolveData>): Set<Conclusion> {
+    fun overlappingConclusionsForGroups(group1: Set<SudokuSolveData>, group2: Set<SudokuSolveData>,
+                                        data: Map<Coordinate, SudokuSolveData>, values: Set<Int>): Set<Conclusion> {
         val overlappingCoordinates = group1.coordinates().intersect(group2.coordinates())
         if (overlappingCoordinates.size < 2) {
             return setOf()
@@ -214,7 +227,7 @@ class OverlappingGroupsStrategy : Strategy<GroupsWithData, Conclusion> {
             return setOf()
         }
 
-        return (1..9).flatMap { i ->
+        return values.flatMap { i ->
             overlappingConclusionsForGroupsAndValue(
                     group1.ignoreCoordinates(overlappingCoordinates, data),
                     group2.ignoreCoordinates(overlappingCoordinates, data),
@@ -238,12 +251,12 @@ class OverlappingGroupsStrategy : Strategy<GroupsWithData, Conclusion> {
 /**
  * The group strategy gathers conclusions about cells in a group
  */
-class GroupStrategy : Strategy<List<SudokuSolveData>, Conclusion> {
+class GroupStrategy : Strategy<DataWithValues, Conclusion> {
 
     /**
      * The substrategies that are used
      */
-    private val strategies: Set<Strategy<List<SudokuSolveData>, Conclusion>> = setOf(
+    private val strategies: Set<Strategy<DataWithValues, Conclusion>> = setOf(
             MissingValueGroupStrategy(),
             FilledValueNotAllowedInGroupStrategy(),
             SingleValueAllowedStrategy(),
@@ -255,7 +268,7 @@ class GroupStrategy : Strategy<List<SudokuSolveData>, Conclusion> {
     /**
      * Gathers all conclusions from the substrategies
      */
-    override fun invoke(data: List<SudokuSolveData>): Set<OneOf<Value, NotAllowed>> {
+    override fun invoke(data: DataWithValues): Set<OneOf<Value, NotAllowed>> {
         return strategies.flatMap { strategy ->
             strategy(data)
         }.toSet()

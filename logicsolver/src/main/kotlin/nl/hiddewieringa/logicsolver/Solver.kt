@@ -42,10 +42,10 @@ class SudokuSolver : LogicPuzzleSolver<SudokuInput, SudokuOutput> {
     /**
      * Migrates input groups to Group objects
      */
-    private fun toGroups(groups: List<List<Coordinate>>): Set<SudokuGroup> {
-        return groups.map { coordinates: List<Coordinate> ->
+    private fun toGroups(groups: List<Set<Coordinate>>): Set<SudokuGroup> {
+        return groups.map { coordinates: Set<Coordinate> ->
             { v: Map<Coordinate, SudokuSolveData> ->
-                coordinates.map { v[it] }.filterNotNull()
+                coordinates.map { v[it] }.filterNotNull().toSet()
             }
         }.toSet()
     }
@@ -62,11 +62,11 @@ class SudokuSolver : LogicPuzzleSolver<SudokuInput, SudokuOutput> {
     /**
      * Gathers conclusions from each group
      */
-    private fun gatherConclusions(groups: Set<SudokuGroup>, data: MutableMap<Coordinate, SudokuSolveData>): Set<Conclusion> {
+    private fun gatherConclusions(groups: Set<SudokuGroup>, data: MutableMap<Coordinate, SudokuSolveData>, puzzleValues: Set<Int>): Set<Conclusion> {
 
         return groups.flatMap { strategy ->
-            groupStrategy(strategy(data))
-        }.toSet() + overlappingGroupsStrategy(Pair(groups, data))
+            groupStrategy(Pair(strategy(data), puzzleValues))
+        }.toSet() + overlappingGroupsStrategy(Triple(groups, data, puzzleValues))
     }
 
     /**
@@ -96,12 +96,12 @@ class SudokuSolver : LogicPuzzleSolver<SudokuInput, SudokuOutput> {
         }
 
         do {
-            val conclusions = gatherConclusions(groups, data)
+            val conclusions = gatherConclusions(groups, data, input.puzzleValues)
             conclusions.forEach {
                 processConclusion(data, it)
             }
 
-            if (!isValid(groups, data)) {
+            if (!isValid(groups, data, input.puzzleValues)) {
                 throw Exception("The puzzle is not valid: current state: ${toOutput(input.coordinates, data)}")
             }
         } while (!conclusions.isEmpty())
@@ -126,10 +126,10 @@ class SudokuSolver : LogicPuzzleSolver<SudokuInput, SudokuOutput> {
     /**
      * Checks if the puzzle is valid
      */
-    private fun isValid(groups: Set<SudokuGroup>, data: MutableMap<Coordinate, SudokuSolveData>): Boolean {
+    private fun isValid(groups: Set<SudokuGroup>, data: MutableMap<Coordinate, SudokuSolveData>, puzzleValues: Set<Int>): Boolean {
         return groups.all { group ->
             val groupData = group(data)
-            (1..9).all { i ->
+            puzzleValues.all { i ->
                 groupData.asSequence().filter { it.hasValue() }.count { it.value == i } <= 1
             }
         }
