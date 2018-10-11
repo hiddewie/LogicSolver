@@ -20,7 +20,7 @@ class InputTest {
                 Coordinate(1, 8),
                 Coordinate(1, 9)
         )
-        assertEquals(expected, row(1))
+        assertEquals(expected, row(sudokuRange, 1))
     }
 
     @Test
@@ -36,7 +36,7 @@ class InputTest {
                 Coordinate(8, 1),
                 Coordinate(9, 1)
         )
-        assertEquals(expected, column(1))
+        assertEquals(expected, column(sudokuRange, 1))
     }
 
     @Test
@@ -52,7 +52,17 @@ class InputTest {
                 Coordinate(3, 2),
                 Coordinate(3, 3)
         )
-        assertEquals(expected, block(1))
+        val expectedTiny = setOf(
+                Coordinate(1, 1),
+                Coordinate(1, 2),
+                Coordinate(1, 3),
+                Coordinate(2, 1),
+                Coordinate(2, 2),
+                Coordinate(2, 3)
+        )
+
+        assertEquals(expected, block(1, 3, 3))
+        assertEquals(expectedTiny, block(1, 3, 2))
     }
 
     @Test

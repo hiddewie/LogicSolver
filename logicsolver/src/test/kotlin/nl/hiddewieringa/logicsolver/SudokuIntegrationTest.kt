@@ -226,6 +226,32 @@ class SudokuIntegrationTest {
     }
 
     @Test
+    fun solveSudokuTiny() {
+        val input = SudokuTiny.readFromString("""
+. . . 6 4 2
+. . . . . .
+. . . . . 6
+. . . . 3 .
+4 . 5 . . .
+2 . 6 5 . .
+""")
+        val solver = SudokuSolver()
+        val output = solver.solve(input)
+
+        val expected = """
+3 5 1 6 4 2
+6 2 4 3 5 1
+5 4 3 1 2 6
+1 6 2 4 3 5
+4 1 5 2 6 3
+2 3 6 5 1 4
+"""
+
+        assertEquals(true, output.isLeft())
+        assertEquals(expected.trim(), output.left().toString().trim())
+    }
+
+    @Test
     fun failToSolveUnsolvableSudoku() {
         val valueMap = mapOf(
                 Coordinate(1, 1) to 1

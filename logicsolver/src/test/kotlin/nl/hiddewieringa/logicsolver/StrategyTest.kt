@@ -58,10 +58,10 @@ class StrategyTest {
         // No overlap
         assertEquals(setOf(), OverlappingGroupsStrategy().overlappingConclusionsForGroups(setOf(), setOf(), mapOf(), setOf()))
 
-        val group1 = row(2).map {
+        val group1 = row(sudokuRange, 2).map {
             SudokuSolveData(it, null, listOf())
         }.toSet()
-        val group2 = column(2).map {
+        val group2 = column(sudokuRange, 2).map {
             SudokuSolveData(it, null, listOf())
         }.toSet()
 
@@ -79,7 +79,7 @@ class StrategyTest {
                 SudokuSolveData(Coordinate(3, 2), null, listOf(1)),
                 SudokuSolveData(Coordinate(3, 3), null, listOf(1))
         )
-        val data = (block(1) + row(2)).toSet().map {
+        val data = (block(1, 3, 3) + row(sudokuRange, 2)).toSet().map {
             it to SudokuSolveData(it, null, if (it.a != 2) listOf(1) else listOf())
         }.toMap(mutableMapOf())
 

@@ -243,3 +243,30 @@ The variable `output` will be
 2 7 9 8 3 5 1 6 4       2 3 4 5 8 9 6 7 1
 8 5 4 2 6 1 9 3 7       5 7 6 1 3 4 8 2 9
 ```
+
+### Sudoku Tiny
+
+The sudoku tiny has a 6x6 grid with 2x3 blocks. The numbers between 1 and 6 must be filled in, but otherwise the same
+rules apply as normal sudokus
+
+```
+val input = SudokuTiny.readFromString("""
+. . . 6 4 2
+. . . . . .
+. . . . . 6
+. . . . 3 .
+4 . 5 . . .
+2 . 6 5 . .
+""")
+val output = SudokuSolver().solve(input)
+```
+
+The variable `output` will be
+```
+3 5 1 6 4 2
+6 2 4 3 5 1
+5 4 3 1 2 6
+1 6 2 4 3 5
+4 1 5 2 6 3
+2 3 6 5 1 4
+```
