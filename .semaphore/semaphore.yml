@@ -8,6 +8,8 @@ agent:
 blocks:
   - name: "Build and tests"
     task:
+      secrets:
+        - name: cc
       jobs:
         - name: Build and tests
           commands:
