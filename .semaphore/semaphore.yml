@@ -13,7 +13,7 @@ blocks:
           commands:
             - checkout
             - curl -LsS https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-            - echo $APP_ENVchmod +x ./cc-test-reporter
+            - chmod +x ./cc-test-reporter
             - ./cc-test-reporter before-build
 
   - name: "Build and test"
