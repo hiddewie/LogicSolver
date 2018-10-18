@@ -16,19 +16,21 @@ blocks:
             - chmod +x ./cc-test-reporter
             - ./cc-test-reporter before-build
 
-  - name: "Build and test"
-    task:
-      jobs:
-      - name: Build and test
-        commands:
-          - ./gradlew build jacocoTestReport --console=plain
+##  - name: "Build and test"
+##    task:
+##      jobs:
+#        - name: Build and test
+#          commands:
+#            - checkout
+            - ./gradlew build jacocoTestReport --console=plain
 
-  - name: "Upload coverage"
-    task:
-      jobs:
-      - name: Code Climate test reporter
-        commands:
-          - cd logicsolver/src/main/kotlin
-          - ./../../../../cc-test-reporter format-coverage ../../../build/reports/jacoco/test/jacocoTestReport.xml --input-type jacoco --output ../../../../coverage/codeclimate.json
-          - cd ../../../..
-          - ./cc-test-reporter upload-coverage
+#  - name: "Upload coverage"
+#    task:
+#      jobs:
+#        - name: Code Climate test reporter
+#          commands:
+#            - checkout
+            - cd logicsolver/src/main/kotlin
+            - ./../../../../cc-test-reporter format-coverage ../../../build/reports/jacoco/test/jacocoTestReport.xml --input-type jacoco --output ../../../../coverage/codeclimate.json
+            - cd ../../../..
+            - ./cc-test-reporter upload-coverage
