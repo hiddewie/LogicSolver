@@ -1,15 +1,15 @@
 version: v1.0
-name: First pipeline example
+name: Build and test pipeline
 agent:
   machine:
     type: e1-standard-2
     os_image: ubuntu1804
 
 blocks:
-  - name: "Setup tests"
+  - name: "Build and tests"
     task:
       jobs:
-        - name: Code Climate test reporter
+        - name: Build and tests
           commands:
             - checkout
             - curl -LsS https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
