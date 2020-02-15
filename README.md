@@ -2,7 +2,9 @@
 
 Solver for logic puzzles, easily extensible for other kind of puzzles
 
-[![Build Status](https://hiddewie.semaphoreci.com/badges/LogicSolver.svg)](https://hiddewie.semaphoreci.com/projects/LogicSolver) [![Maintainability](https://api.codeclimate.com/v1/badges/78c7a17b06141586c06a/maintainability)](https://codeclimate.com/github/hiddewie/LogicSolver/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/78c7a17b06141586c06a/test_coverage)](https://codeclimate.com/github/hiddewie/LogicSolver/test_coverage)
+[![Build Status](https://hiddewie.semaphoreci.com/badges/LogicSolver.svg)](https://hiddewie.semaphoreci.com/projects/LogicSolver) 
+[![Maintainability](https://api.codeclimate.com/v1/badges/78c7a17b06141586c06a/maintainability)](https://codeclimate.com/github/hiddewie/LogicSolver/maintainability) 
+[![Test Coverage](https://api.codeclimate.com/v1/badges/78c7a17b06141586c06a/test_coverage)](https://codeclimate.com/github/hiddewie/LogicSolver/test_coverage)
 
 ## Idea
 
